@@ -1,0 +1,21 @@
+{
+  "name": "lancebet-mvp",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "LANCE.BET — MVP de apostas simuladas (Brasileirão). React 19 + React Router 8 + Vite.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-router": "^8.0.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.6.0",
+    "vite": "^6.0.0"
+  }
+}

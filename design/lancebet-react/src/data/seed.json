@@ -1,0 +1,53 @@
+{
+  "counters": { "nextBetId": 5, "nextMovId": 5, "nextEventId": 7 },
+  "users": [
+    { "id": 1, "nome": "João Silva", "cpf": "111.111.111-11", "email": "joao@email.com", "senha": "123456", "nascimento": "12/03/1995", "perfil": "APOSTADOR", "status": "ATIVO", "saldo": 947.5, "criadoEm": "02/06/2026" },
+    { "id": 2, "nome": "Admin Lance", "cpf": "000.000.000-00", "email": "admin@lance.bet", "senha": "admin", "nascimento": "01/01/1988", "perfil": "ADMINISTRADOR", "status": "ATIVO", "saldo": 0, "criadoEm": "01/01/2026" },
+    { "id": 3, "nome": "Marina Costa", "cpf": "222.222.222-22", "email": "marina@email.com", "senha": "123456", "nascimento": "25/07/2000", "perfil": "APOSTADOR", "status": "ATIVO", "saldo": 1230.0, "criadoEm": "05/06/2026" },
+    { "id": 4, "nome": "Pedro Alves", "cpf": "333.333.333-33", "email": "pedro@email.com", "senha": "123456", "nascimento": "10/11/1998", "perfil": "APOSTADOR", "status": "BLOQUEADO", "saldo": 0, "criadoEm": "06/06/2026" }
+  ],
+  "events": [
+    { "id": 1, "mandante": "Flamengo", "visitante": "Palmeiras", "titulo": "Flamengo x Palmeiras", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Sáb · 20 jun · 16:00", "status": "ABERTO", "resultadoDescricao": "", "criadoPor": 2, "opcoes": [
+      { "id": 11, "descricao": "Flamengo", "sub": "Mandante", "odd": 2.1, "status": "ATIVA", "vencedora": false },
+      { "id": 12, "descricao": "Empate", "sub": "Empate", "odd": 3.3, "status": "ATIVA", "vencedora": false },
+      { "id": 13, "descricao": "Palmeiras", "sub": "Visitante", "odd": 3.2, "status": "ATIVA", "vencedora": false }
+    ] },
+    { "id": 2, "mandante": "Corinthians", "visitante": "São Paulo", "titulo": "Corinthians x São Paulo", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Sáb · 20 jun · 18:30", "status": "ABERTO", "resultadoDescricao": "", "criadoPor": 2, "opcoes": [
+      { "id": 21, "descricao": "Corinthians", "sub": "Mandante", "odd": 2.65, "status": "ATIVA", "vencedora": false },
+      { "id": 22, "descricao": "Empate", "sub": "Empate", "odd": 3.1, "status": "ATIVA", "vencedora": false },
+      { "id": 23, "descricao": "São Paulo", "sub": "Visitante", "odd": 2.7, "status": "ATIVA", "vencedora": false }
+    ] },
+    { "id": 3, "mandante": "Grêmio", "visitante": "Internacional", "titulo": "Grêmio x Internacional", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Dom · 21 jun · 16:00", "status": "ABERTO", "resultadoDescricao": "", "criadoPor": 2, "opcoes": [
+      { "id": 31, "descricao": "Grêmio", "sub": "Mandante", "odd": 2.4, "status": "ATIVA", "vencedora": false },
+      { "id": 32, "descricao": "Empate", "sub": "Empate", "odd": 3.2, "status": "ATIVA", "vencedora": false },
+      { "id": 33, "descricao": "Internacional", "sub": "Visitante", "odd": 2.95, "status": "ATIVA", "vencedora": false }
+    ] },
+    { "id": 4, "mandante": "Atlético-MG", "visitante": "Cruzeiro", "titulo": "Atlético-MG x Cruzeiro", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Dom · 21 jun · 18:30", "status": "ABERTO", "resultadoDescricao": "", "criadoPor": 2, "opcoes": [
+      { "id": 41, "descricao": "Atlético-MG", "sub": "Mandante", "odd": 2.25, "status": "ATIVA", "vencedora": false },
+      { "id": 42, "descricao": "Empate", "sub": "Empate", "odd": 3.25, "status": "ATIVA", "vencedora": false },
+      { "id": 43, "descricao": "Cruzeiro", "sub": "Visitante", "odd": 3.3, "status": "ATIVA", "vencedora": false }
+    ] },
+    { "id": 5, "mandante": "Botafogo", "visitante": "Fluminense", "titulo": "Botafogo x Fluminense", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Qua · 24 jun · 21:30", "status": "FECHADO", "resultadoDescricao": "", "criadoPor": 2, "opcoes": [
+      { "id": 51, "descricao": "Botafogo", "sub": "Mandante", "odd": 2.05, "status": "ATIVA", "vencedora": false },
+      { "id": 52, "descricao": "Empate", "sub": "Empate", "odd": 3.3, "status": "ATIVA", "vencedora": false },
+      { "id": 53, "descricao": "Fluminense", "sub": "Visitante", "odd": 3.6, "status": "ATIVA", "vencedora": false }
+    ] },
+    { "id": 6, "mandante": "Bahia", "visitante": "Vitória", "titulo": "Bahia x Vitória", "esporte": "Futebol", "competicao": "Brasileirão Série A", "dataFmt": "Dom · 14 jun · 16:00", "status": "LIQUIDADO", "resultadoDescricao": "Bahia 2 x 0 Vitória", "criadoPor": 2, "opcoes": [
+      { "id": 61, "descricao": "Bahia", "sub": "Mandante", "odd": 1.95, "status": "ATIVA", "vencedora": true },
+      { "id": 62, "descricao": "Empate", "sub": "Empate", "odd": 3.4, "status": "ATIVA", "vencedora": false },
+      { "id": 63, "descricao": "Vitória", "sub": "Visitante", "odd": 3.8, "status": "ATIVA", "vencedora": false }
+    ] }
+  ],
+  "bets": [
+    { "id": 1, "usuarioId": 1, "eventoId": 1, "opcaoId": 11, "titulo": "Flamengo x Palmeiras", "opcaoDesc": "Flamengo", "valor": 100, "odd": 2.1, "retorno": 210.0, "status": "ABERTA", "resultado": "PENDENTE", "criadaEm": "15/06/2026 14:22", "liquidadaEm": null },
+    { "id": 2, "usuarioId": 1, "eventoId": 6, "opcaoId": 61, "titulo": "Bahia x Vitória", "opcaoDesc": "Bahia", "valor": 50, "odd": 1.95, "retorno": 97.5, "status": "LIQUIDADA", "resultado": "GANHOU", "criadaEm": "13/06/2026 19:40", "liquidadaEm": "14/06/2026 18:05" },
+    { "id": 3, "usuarioId": 3, "eventoId": 2, "opcaoId": 23, "titulo": "Corinthians x São Paulo", "opcaoDesc": "São Paulo", "valor": 75, "odd": 2.7, "retorno": 202.5, "status": "ABERTA", "resultado": "PENDENTE", "criadaEm": "16/06/2026 09:10", "liquidadaEm": null },
+    { "id": 4, "usuarioId": 3, "eventoId": 6, "opcaoId": 63, "titulo": "Bahia x Vitória", "opcaoDesc": "Vitória", "valor": 40, "odd": 3.8, "retorno": 152.0, "status": "LIQUIDADA", "resultado": "PERDEU", "criadaEm": "13/06/2026 20:00", "liquidadaEm": "14/06/2026 18:05" }
+  ],
+  "movements": [
+    { "id": 4, "userId": 1, "apostaId": 1, "tipo": "APOSTA", "valor": -100.0, "saldoApos": 947.5, "descricao": "Aposta #1 · Flamengo x Palmeiras", "criadoEm": "15/06/2026 14:22" },
+    { "id": 3, "userId": 1, "apostaId": 2, "tipo": "GANHO", "valor": 97.5, "saldoApos": 1047.5, "descricao": "Liquidação aposta #2 · Bahia venceu", "criadoEm": "14/06/2026 18:05" },
+    { "id": 2, "userId": 1, "apostaId": 2, "tipo": "APOSTA", "valor": -50.0, "saldoApos": 950.0, "descricao": "Aposta #2 · Bahia x Vitória", "criadoEm": "13/06/2026 19:40" },
+    { "id": 1, "userId": 1, "apostaId": null, "tipo": "CRÉDITO INICIAL", "valor": 1000.0, "saldoApos": 1000.0, "descricao": "Saldo fictício de boas-vindas", "criadoEm": "02/06/2026 10:00" }
+  ]
+}
