@@ -29,7 +29,7 @@ Docs interativas em `/docs`. `pytest.ini` usa `asyncio_mode=auto`.
 
 ### Frontend (rodar a partir de `frontend/`)
 ```bash
-npm run dev          # Vite dev server na porta 5180 (proxy /api -> VITE_BACKEND_URL, fallback 8400)
+npm run dev          # Vite dev server na porta 5183 (proxy /api -> VITE_BACKEND_URL, fallback 8413)
 npm run build        # tsc -b && vite build  (saída em dist/, servida pelo backend em prod)
 npm run test         # vitest run
 npx tsc -b --noEmit  # typecheck isolado

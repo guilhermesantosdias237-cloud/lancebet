@@ -57,7 +57,7 @@ cp .env.example .env             # edite ao menos SECRET_KEY e APP_NAME
 Sobe em `http://localhost:8400` por padrão de dev (configurável via `HOST`/`PORT` no `.env`).
 Documentação interativa da API em `/docs`.
 
-Com o SPA presente em dev, o **Vite** roda separado (porta 5180) e faz **proxy de `/api`,
+Com o SPA presente em dev, o **Vite** roda separado (porta 5183) e faz **proxy de `/api`,
 `/static` e `/health`** para este backend (mesma origem) — sem CORS. O Vite proxia para
 `VITE_BACKEND_URL` (fallback `http://127.0.0.1:8400`), que casa com o `PORT=8400` do `.env`.
 

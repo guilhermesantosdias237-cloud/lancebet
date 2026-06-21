@@ -19,7 +19,7 @@ e do contrato de API está no **[`../CLAUDE.md`](../CLAUDE.md)** (raiz do reposi
 
 ```bash
 npm install
-npm run dev            # Vite dev server na porta 5180 (proxy /api, /static, /health -> backend)
+npm run dev            # Vite dev server na porta 5183 (proxy /api, /static, /health -> backend)
 npm run build          # tsc -b && vite build  (saída em dist/)
 npm run preview        # serve o build
 npm run test           # vitest run
