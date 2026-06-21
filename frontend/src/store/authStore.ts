@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { api, ApiError, garantirCsrf, limparCsrf } from '../lib/api'
+import { authApi, ApiError, garantirCsrf, limparCsrf } from '../lib/api'
 import type { Usuario } from '../lib/types'
 import { Perfil } from '../lib/types'
 
@@ -8,12 +8,16 @@ interface AuthState {
   /** true até a verificação inicial de sessão terminar. */
   carregando: boolean
   isAdmin: () => boolean
+  isApostador: () => boolean
   /** Verifica a sessão atual no backend (GET /api/me). Chamado no boot. */
   carregarSessao: () => Promise<void>
-  login: (email: string, senha: string) => Promise<Usuario>
+  /** Login dual: identificador pode ser e-mail OU CPF. */
+  login: (identificador: string, senha: string) => Promise<Usuario>
   logout: () => Promise<void>
-  /** Atualiza o usuário em memória (após editar perfil/foto). */
+  /** Atualiza o usuário em memória (após editar perfil/foto/saldo). */
   setUsuario: (u: Usuario) => void
+  /** Atualiza apenas o saldo fictício em memória (após apostar/ganhar). */
+  setSaldo: (saldo: number) => void
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -21,13 +25,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   carregando: true,
 
   isAdmin: () => get().usuario?.perfil === Perfil.ADMIN,
+  isApostador: () => get().usuario?.perfil === Perfil.APOSTADOR,
 
   carregarSessao: async () => {
     try {
       await garantirCsrf()
-      const usuario = await api.get<Usuario>('/me')
+      const usuario = await authApi.me()
       set({ usuario, carregando: false })
     } catch (e) {
+      // 401 anônimo é esperado no boot; qualquer falha => sem sessão.
       if (e instanceof ApiError && e.status === 401) {
         set({ usuario: null, carregando: false })
       } else {
@@ -36,15 +42,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  login: async (email, senha) => {
-    const usuario = await api.post<Usuario>('/login', { email, senha })
+  login: async (identificador, senha) => {
+    const usuario = await authApi.login(identificador, senha)
     set({ usuario })
     return usuario
   },
 
   logout: async () => {
     try {
-      await api.post('/logout')
+      await authApi.logout()
     } finally {
       limparCsrf()
       set({ usuario: null })
@@ -52,4 +58,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   setUsuario: (usuario) => set({ usuario }),
+
+  setSaldo: (saldo) =>
+    set((s) => (s.usuario ? { usuario: { ...s.usuario, saldo_ficticio: saldo } } : s)),
 }))

@@ -3,20 +3,20 @@
 # precisa de frontend/ (build do SPA) e backend/ (API FastAPI).
 services:
   web:
-    container_name: dwa.ifes.site
+    container_name: lancebet.dwa.ifes.site
     build:
       context: ..
       dockerfile: deploy/Dockerfile
     ports:
-      - "8410:8000"
+      - "8413:8000"
     restart: unless-stopped
     environment:
-      # Banco SQLite dentro do volume persistente (ver volume dwa_data abaixo).
+      # Banco SQLite dentro do volume persistente (ver volume lancebet_data abaixo).
       DATABASE_PATH: /app/data/dados.db
     # Persiste o banco SQLite e os uploads entre recriações do container.
     volumes:
-      - dwa_data:/app/data
-      - dwa_uploads:/app/static/uploads
+      - lancebet_data:/app/data
+      - lancebet_uploads:/app/static/uploads
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -25,5 +25,5 @@ services:
       start_period: 40s
 
 volumes:
-  dwa_data:
-  dwa_uploads:
+  lancebet_data:
+  lancebet_uploads:

@@ -18,13 +18,9 @@ class UsuarioLogado:
         """Verifica se o usuário é administrador."""
         return self.perfil == Perfil.ADMIN.value
 
-    def is_cliente(self) -> bool:
-        """Verifica se o usuário é cliente."""
-        return self.perfil == Perfil.CLIENTE.value
-
-    def is_vendedor(self) -> bool:
-        """Verifica se o usuário é vendedor."""
-        return self.perfil == Perfil.VENDEDOR.value
+    def is_apostador(self) -> bool:
+        """Verifica se o usuário é apostador."""
+        return self.perfil == Perfil.APOSTADOR.value
 
     def tem_perfil(self, *perfis: str) -> bool:
         """
@@ -37,8 +33,8 @@ class UsuarioLogado:
             True se o usuário tem um dos perfis, False caso contrário
 
         Exemplo:
-            if usuario.tem_perfil(Perfil.ADMIN.value, Perfil.VENDEDOR.value):
-                # lógica para admin ou vendedor
+            if usuario.tem_perfil(Perfil.ADMIN.value, Perfil.APOSTADOR.value):
+                # lógica para admin ou apostador
         """
         return self.perfil in perfis
 

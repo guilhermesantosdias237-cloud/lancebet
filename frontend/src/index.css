@@ -1,0 +1,65 @@
+/* Tokens visuais do LanceBet (portados de design/lancebet-react/src/index.css).
+   Paleta preto/branco/cinza + fontes Archivo / Alfa Slab One + animacao lbfade.
+   Este arquivo e a fonte unica de identidade visual do app; Bootstrap entra
+   apenas como utilitario de grid/layout onde necessario. */
+
+:root {
+  --lb-preto: #000;
+  --lb-branco: #fff;
+  --lb-fundo: #f4f4f4;
+  --lb-cinza: #7f7f7f;
+  --lb-cinza-claro: #b3b5b7;
+  --lb-borda: #e4e4e4;
+  --lb-borda-suave: #efefef;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--lb-fundo);
+  font-family: 'Archivo', sans-serif;
+  color: #000;
+}
+
+::selection {
+  background: #000;
+  color: #fff;
+}
+
+input,
+button,
+select,
+textarea {
+  font-family: 'Archivo', sans-serif;
+}
+
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #000 !important;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+@keyframes lbfade {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

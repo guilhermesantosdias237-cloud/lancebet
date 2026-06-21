@@ -4,7 +4,7 @@ Helpers de validação reutilizáveis
 Funções auxiliares para validações comuns em formulários e DTOs,
 centralizando lógica que seria duplicada em múltiplos lugares.
 
-Autor: DefaultWebApp
+Autor: LanceBet
 Versão: 1.0.0
 """
 import sqlite3

@@ -9,6 +9,20 @@ from dtos.validators import (
 )
 
 
+class AlterarStatusUsuarioDTO(BaseModel):
+    """Bloqueia ou desbloqueia um usuário apostador (Ativo|Bloqueado)."""
+
+    status: str = Field(..., description="Novo status do usuário (Ativo|Bloqueado)")
+
+    @field_validator("status")
+    @classmethod
+    def _validar_status(cls, v):
+        permitidos = ("Ativo", "Bloqueado")
+        if v not in permitidos:
+            raise ValueError("Status deve ser 'Ativo' ou 'Bloqueado'.")
+        return v
+
+
 class CriarUsuarioDTO(BaseModel):
     """DTO para criação de usuário pelo administrador."""
 

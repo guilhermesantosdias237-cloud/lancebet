@@ -7,18 +7,22 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, Response, status
 
 # DTOs (entrada)
-from dtos.usuario_dto import CriarUsuarioDTO, AlterarUsuarioDTO
+from dtos.usuario_dto import (
+    CriarUsuarioDTO,
+    AlterarUsuarioDTO,
+    AlterarStatusUsuarioDTO,
+)
 
 # Schemas (saída)
 from dtos.responses.comum import PaginaResponse
-from dtos.responses.usuario_response import UsuarioResponse
+from dtos.responses.usuario_response import UsuarioResponse, UsuarioAdminResponse
 
 # Models
 from model.usuario_model import Usuario
 from model.usuario_logado_model import UsuarioLogado
 
 # Repositories
-from repo import usuario_repo
+from repo import usuario_repo, carteira_repo, aposta_repo
 
 # Utilities
 from util.api_helpers import checar_rate_limit
@@ -79,7 +83,7 @@ def _conflito_email(mensagem_erro: str) -> HTTPException:
 # Listagem
 # =============================================================================
 
-@router.get("", response_model=PaginaResponse[UsuarioResponse])
+@router.get("", response_model=PaginaResponse[UsuarioAdminResponse])
 @requer_autenticacao([Perfil.ADMIN.value])
 async def listar(
     request: Request,
@@ -89,7 +93,7 @@ async def listar(
     q: Optional[str] = None,
     usuario_logado: Optional[UsuarioLogado] = None,
 ):
-    """Lista usuários de forma paginada, com filtros opcionais por perfil e termo (q)."""
+    """Lista usuários paginados com saldo fictício e total de apostas (visão admin)."""
     assert usuario_logado is not None
 
     termo = (q or "").strip()
@@ -104,7 +108,14 @@ async def listar(
         usuarios = usuario_repo.obter_todos()
 
     paginacao = paginar(usuarios, pagina=pagina, por_pagina=por_pagina)
-    items = [UsuarioResponse.de_usuario(u) for u in paginacao.items]
+    items = [
+        UsuarioAdminResponse.de_usuario_admin(
+            u,
+            saldo_ficticio=carteira_repo.obter_saldo(u.id) or 0.0,
+            total_apostas=aposta_repo.contar_por_usuario(u.id),
+        )
+        for u in paginacao.items
+    ]
     return PaginaResponse.de_paginacao(paginacao, items)
 
 
@@ -245,3 +256,45 @@ async def excluir(
         f"Usuário {id} ({usuario.email}) excluído por admin {usuario_logado.id}"
     )
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+# =============================================================================
+# Bloquear / Desbloquear (status)
+# =============================================================================
+
+@router.patch("/{id}/status", response_model=UsuarioAdminResponse)
+@requer_autenticacao([Perfil.ADMIN.value])
+async def alterar_status(
+    request: Request,
+    id: int,
+    dto: AlterarStatusUsuarioDTO,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Bloqueia ou desbloqueia um apostador. Não permite alterar administradores."""
+    assert usuario_logado is not None
+    checar_rate_limit(admin_usuarios_limiter, request)
+
+    usuario = _obter_usuario_ou_404(id)
+
+    if usuario.perfil == Perfil.ADMIN.value:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Não é possível bloquear um administrador.",
+        )
+
+    if not usuario_repo.atualizar_status(id, dto.status):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao alterar status do usuário. Tente novamente.",
+        )
+
+    logger.info(
+        f"Status do usuário {id} alterado para '{dto.status}' "
+        f"por admin {usuario_logado.id}"
+    )
+    atualizado = _obter_usuario_ou_404(id)
+    return UsuarioAdminResponse.de_usuario_admin(
+        atualizado,
+        saldo_ficticio=carteira_repo.obter_saldo(id) or 0.0,
+        total_apostas=aposta_repo.contar_por_usuario(id),
+    )

@@ -25,12 +25,11 @@ class Perfil(EnumEntidade):
 
     Exemplos:
         - Correto: perfil = Perfil.ADMIN.value
-        - Correto: perfil = Perfil.CLIENTE.value
+        - Correto: perfil = Perfil.APOSTADOR.value
         - ERRADO: perfil = "admin"
     """
 
-    # PERFIS DO SEU SISTEMA #####################################
+    # PERFIS DO SISTEMA LANCEBET ################################
     ADMIN = "Administrador"
-    CLIENTE = "Cliente"
-    VENDEDOR = "Vendedor"
+    APOSTADOR = "Apostador"
     # FIM DOS PERFIS ############################################

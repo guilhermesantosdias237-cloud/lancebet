@@ -52,12 +52,13 @@ class TestSQLInjection:
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": "' OR '1'='1' --", "senha": "Senha@123"},
+            json={"identificador": "' OR '1'='1' --", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
 
-        # E-mail malformado é barrado na validação (não autentica de forma alguma)
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        # Tentativa de SQL injection no identificador não autentica: prepared
+        # statements impedem a injeção, resultando em credenciais inválidas (401).
+        assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_obter_usuario_id_nao_numerico_retorna_422(self, admin_autenticado):
         """ID não numérico no path deve ser rejeitado pela validação (422)"""
@@ -127,7 +128,7 @@ class TestSessionSecurity:
         token = _csrf(client)
         client.post(
             "/api/login",
-            json={"email": "user1@example.com", "senha": "Senha@123"},
+            json={"identificador": "user1@example.com", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
         assert client.get("/api/me").json()["email"] == "user1@example.com"
@@ -138,7 +139,7 @@ class TestSessionSecurity:
         token = _csrf(client)
         client.post(
             "/api/login",
-            json={"email": "user2@example.com", "senha": "Senha@123"},
+            json={"identificador": "user2@example.com", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
         corpo = client.get("/api/me").json()
@@ -159,7 +160,7 @@ class TestPasswordSecurity:
         token = _csrf(client)
         client.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": usuario_teste["senha"]},
+            json={"identificador": usuario_teste["email"], "senha": usuario_teste["senha"]},
             headers={"X-CSRF-Token": token},
         )
 
@@ -193,7 +194,7 @@ class TestPasswordSecurity:
             response = client.post(
                 "/api/cadastrar",
                 json={
-                    "perfil": Perfil.CLIENTE.value,
+                    "perfil": Perfil.APOSTADOR.value,
                     "nome": "Usuario Teste",
                     "email": f"fraca{i}@example.com",
                     "senha": senha,
@@ -212,13 +213,13 @@ class TestInformationDisclosure:
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": "naoexiste@example.com", "senha": "Senha@123"},
+            json={"identificador": "naoexiste@example.com", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         detail = response.json()["detail"].lower()
-        assert "e-mail ou senha" in detail
+        assert "senha inválid" in detail
         assert "não cadastrado" not in detail
 
     def test_esqueci_senha_nao_revela_email(self, client):

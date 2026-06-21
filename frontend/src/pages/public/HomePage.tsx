@@ -1,188 +1,95 @@
-import { Link } from 'react-router-dom'
+// Landing page pública do LanceBet (rota /).
+// Porte fiel de design/lancebet-react/src/pages/Home.jsx.
+// A lista de eventos em destaque vem do backend via eventosApi.listar
+// (status=Aberto, por_pagina=3) em vez do AppContext mock do protótipo.
+import { useNavigate } from 'react-router-dom'
+import { useFetch } from '../../hooks/useFetch'
+import { eventosApi } from '../../lib/api'
+import { StatusEvento } from '../../lib/types'
+import EventCard from '../../components/lancebet/EventCard'
+import Footer from '../../components/lancebet/Footer'
+import { Button } from '../../components/lancebet/ui'
+import Spinner from '../../components/ui/Spinner'
+import iconWhite from '../../assets/icon_white.svg'
 
-const APP_NAME = 'Sistema Web'
-
-interface Recurso {
-  icone: string
-  cor: string
-  titulo: string
-  texto: string
-}
-
-const recursos: Recurso[] = [
-  {
-    icone: 'bi-shield-check',
-    cor: 'text-primary',
-    titulo: 'Segurança',
-    texto: 'Sistema seguro com autenticação robusta e criptografia de dados',
-  },
-  {
-    icone: 'bi-person-circle',
-    cor: 'text-info',
-    titulo: 'Perfil Personalizável',
-    texto: 'Personalize seu perfil com foto e informações pessoais',
-  },
-  {
-    icone: 'bi-speedometer2',
-    cor: 'text-warning',
-    titulo: 'Rápido e Responsivo',
-    texto: 'Interface moderna que funciona em qualquer dispositivo',
-  },
-  {
-    icone: 'bi-bell',
-    cor: 'text-danger',
-    titulo: 'Notificações',
-    texto: 'Receba alertas e notificações sobre suas atividades',
-  },
-  {
-    icone: 'bi-gear',
-    cor: 'text-secondary',
-    titulo: 'Configurável',
-    texto: 'Ajuste o sistema de acordo com suas preferências',
-  },
-]
-
-interface Faq {
-  id: string
-  pergunta: string
-  resposta: string
-}
-
-const faqs: Faq[] = [
-  {
-    id: 'faq1',
-    pergunta: 'Como criar uma conta?',
-    resposta:
-      'Basta clicar em "Criar Conta" no menu superior, preencher seus dados e confirmar. O processo é rápido e gratuito!',
-  },
-  {
-    id: 'faq2',
-    pergunta: 'O sistema é seguro?',
-    resposta:
-      'Sim! Utilizamos criptografia de ponta e as melhores práticas de segurança para proteger seus dados. Suas senhas são armazenadas de forma segura e nunca são expostas.',
-  },
-  {
-    id: 'faq3',
-    pergunta: 'Posso alterar meus dados depois?',
-    resposta:
-      'Claro! Você pode atualizar seus dados pessoais, foto de perfil e senha a qualquer momento através da seção "Meu Perfil" no seu dashboard.',
-  },
-  {
-    id: 'faq4',
-    pergunta: 'Esqueci minha senha, o que fazer?',
-    resposta:
-      'Na tela de login, clique em "Esqueci minha senha" e siga as instruções. Você receberá um e-mail com um link para redefinir sua senha.',
-  },
+const steps = [
+  { n: '01', t: 'Crie sua conta', d: 'Cadastro rápido com validação de maioridade pela data de nascimento.' },
+  { n: '02', t: 'Ganhe R$ 1.000', d: 'Saldo fictício de boas-vindas para apostar sem usar dinheiro real.' },
+  { n: '03', t: 'Faça sua aposta', d: 'Escolha um jogo, selecione o mercado e confirme com o valor desejado.' },
+  { n: '04', t: 'Acompanhe o resultado', d: 'Apostas liquidadas automaticamente e saldo atualizado na hora.' },
 ]
 
 export default function HomePage() {
+  const navigate = useNavigate()
+  const { data, carregando } = useFetch(
+    () => eventosApi.listar({ status: StatusEvento.ABERTO, por_pagina: 3 }),
+    [],
+  )
+  const featured = data?.items ?? []
+
   return (
-    <>
-      {/* Hero Section */}
-      <div className="mb-5">
-        <div className="bg-primary text-white rounded-4 shadow-lg p-5 pb-3">
-          <div className="row align-items-center">
-            <div className="col-lg-6">
-              <h1 className="display-4 fw-bold mb-4">Bem-vindo ao {APP_NAME}</h1>
-              <p className="lead mb-4">
-                Uma plataforma completa e moderna para gerenciar suas atividades de forma simples e
-                eficiente.
-              </p>
-              <div className="d-flex gap-3 flex-column flex-sm-row">
-                <Link to="/cadastrar" className="btn btn-light btn-lg">
-                  <i className="bi bi-person-plus" /> Criar Conta
-                </Link>
-                <Link to="/sobre" className="btn btn-outline-light btn-lg">
-                  <i className="bi bi-info-circle" /> Saiba mais
-                </Link>
-              </div>
-            </div>
-            <div className="col-lg-6 text-center mt-4 mt-lg-0">
-              <i className="bi bi-laptop display-1 opacity-25" style={{ fontSize: '8rem' }} />
-            </div>
+    <div>
+      <section style={{ background: '#000', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        <img src={iconWhite} alt="" style={{ position: 'absolute', right: -60, top: '50%', transform: 'translateY(-50%)', height: 560, opacity: 0.06, pointerEvents: 'none' }} />
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '88px 28px 76px', position: 'relative' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, border: '1px solid rgba(255,255,255,.25)', padding: '7px 14px', marginBottom: 30 }}>
+            <span style={{ width: 7, height: 7, background: '#fff', borderRadius: '50%' }} />
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.18em', color: '#B3B5B7' }}>PLATAFORMA SIMULADA · SALDO FICTÍCIO</span>
           </div>
-        </div>
-      </div>
-
-      {/* Recursos Section */}
-      <div className="mb-5" id="recursos">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Recursos Principais</h2>
-          <p className="text-muted">Tudo que você precisa em um só lugar</p>
-        </div>
-
-        <div className="row g-4">
-          {recursos.map((recurso) => (
-            <div className="col-md-4" key={recurso.titulo}>
-              <div className="card h-100 shadow-sm shadow-hover text-center">
-                <div className="card-body p-4">
-                  <div className="mb-3">
-                    <i className={`bi ${recurso.icone} ${recurso.cor} display-3`} />
-                  </div>
-                  <h5 className="card-title">{recurso.titulo}</h5>
-                  <p className="card-text text-muted">{recurso.texto}</p>
+          <h1 style={{ fontFamily: "'Alfa Slab One', serif", fontSize: 88, lineHeight: 0.92, letterSpacing: '-.01em', margin: 0, maxWidth: '14ch' }}>O JOGO COMEÇA NO SEU PALPITE.</h1>
+          <p style={{ fontSize: 19, lineHeight: 1.5, color: '#B3B5B7', maxWidth: '52ch', margin: '28px 0 38px', fontWeight: 500 }}>
+            Aposte em jogos do Brasileirão com saldo fictício, acompanhe odds em tempo real e veja suas apostas serem liquidadas automaticamente. Sem dinheiro real, só estratégia.
+          </p>
+          <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap' }}>
+            <Button variant="light" onClick={() => navigate('/cadastro')} style={{ padding: '17px 32px', fontSize: 15 }}>Criar conta grátis</Button>
+            <Button variant="ghostDark" onClick={() => navigate('/entrar')} style={{ padding: '17px 32px', fontSize: 15 }}>Entrar</Button>
+          </div>
+          <div style={{ display: 'flex', gap: 40, marginTop: 56, flexWrap: 'wrap' }}>
+            {([['R$ 1.000', 'Saldo de boas-vindas'], ['100%', 'Ambiente simulado'], ['18+', 'Maiores de idade']] as const).map(([big, small], i) => (
+              <div key={i} style={{ display: 'flex', gap: 40 }}>
+                {i > 0 && <div style={{ width: 1, background: '#222' }} />}
+                <div>
+                  <div style={{ fontFamily: "'Alfa Slab One', serif", fontSize: 34 }}>{big}</div>
+                  <div style={{ fontSize: 12, color: '#7F7F7F', fontWeight: 600, letterSpacing: '.08em', textTransform: 'uppercase', marginTop: 4 }}>{small}</div>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: '64px 28px 20px' }}>
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, marginBottom: 26 }}>
+          <h2 style={{ fontFamily: "'Alfa Slab One', serif", fontSize: 34, margin: 0 }}>Jogos em destaque</h2>
+          <button onClick={() => navigate('/entrar')} style={{ background: 'transparent', border: 'none', color: '#000', fontWeight: 700, fontSize: 13, letterSpacing: '.04em', textTransform: 'uppercase', cursor: 'pointer', borderBottom: '2px solid #000', paddingBottom: 3 }}>Ver todos os eventos →</button>
+        </div>
+        {carregando ? (
+          <Spinner />
+        ) : featured.length === 0 ? (
+          <div style={{ background: '#fff', border: '1px solid #E4E4E4', padding: '40px 28px', textAlign: 'center', color: '#7F7F7F', fontWeight: 600 }}>
+            Nenhum jogo aberto no momento. Volte em breve.
+          </div>
+        ) : (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 18 }}>
+            {featured.map((ev) => <EventCard key={ev.id} event={ev} />)}
+          </div>
+        )}
+      </section>
+
+      <section style={{ maxWidth: 1280, margin: '0 auto', padding: '48px 28px 72px' }}>
+        <h2 style={{ fontFamily: "'Alfa Slab One', serif", fontSize: 34, margin: '0 0 30px' }}>Como funciona</h2>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 1, background: '#E4E4E4', border: '1px solid #E4E4E4' }}>
+          {steps.map((s) => (
+            <div key={s.n} style={{ background: '#fff', padding: '28px 24px' }}>
+              <div style={{ fontFamily: "'Alfa Slab One', serif", fontSize: 30, color: '#B3B5B7' }}>{s.n}</div>
+              <h3 style={{ fontSize: 17, fontWeight: 800, margin: '12px 0 7px' }}>{s.t}</h3>
+              <p style={{ fontSize: 13.5, lineHeight: 1.5, color: '#7F7F7F', margin: 0 }}>{s.d}</p>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* CTA Section */}
-      <div className="mb-5">
-        <div className="card bg-primary text-white shadow-lg shadow-hover">
-          <div className="card-body text-center p-5">
-            <h2 className="fw-bold mb-4">Pronto para começar?</h2>
-            <p className="lead mb-4">Crie sua conta gratuitamente e comece a usar agora mesmo!</p>
-            <div className="d-flex justify-content-center gap-3 flex-column flex-sm-row">
-              <Link to="/cadastrar" className="btn btn-light btn-lg">
-                <i className="bi bi-person-plus" /> Criar Conta Grátis
-              </Link>
-              <Link to="/login" className="btn btn-outline-light btn-lg">
-                <i className="bi bi-box-arrow-in-right" /> Já tenho conta
-              </Link>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* FAQ Section */}
-      <div className="mb-5">
-        <div className="text-center mb-5">
-          <h2 className="fw-bold">Perguntas Frequentes</h2>
-          <p className="text-muted">Tire suas dúvidas sobre o sistema</p>
-        </div>
-
-        <div className="row">
-          <div className="col-lg-8 mx-auto">
-            <div className="accordion" id="faqAccordion">
-              {faqs.map((faq, indice) => (
-                <div className="accordion-item" key={faq.id}>
-                  <h2 className="accordion-header">
-                    <button
-                      className={`accordion-button${indice === 0 ? '' : ' collapsed'}`}
-                      type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target={`#${faq.id}`}
-                      aria-expanded={indice === 0}
-                      aria-controls={faq.id}
-                    >
-                      {faq.pergunta}
-                    </button>
-                  </h2>
-                  <div
-                    id={faq.id}
-                    className={`accordion-collapse collapse${indice === 0 ? ' show' : ''}`}
-                    data-bs-parent="#faqAccordion"
-                  >
-                    <div className="accordion-body">{faq.resposta}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </>
+      <Footer />
+    </div>
   )
 }

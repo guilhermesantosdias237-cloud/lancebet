@@ -33,7 +33,7 @@ def criar_chamado_admin(admin_autenticado, admin_teste):
         nome="Cliente Chamado Teste",
         email="cliente_chamado@example.com",
         senha=criar_hash_senha("Senha@123"),
-        perfil=Perfil.CLIENTE.value
+        perfil=Perfil.APOSTADOR.value
     )
     cliente_id = usuario_repo.inserir(cliente)
 

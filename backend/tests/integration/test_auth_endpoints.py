@@ -56,11 +56,11 @@ class TestCsrfToken:
 class TestCadastrar:
     def _payload(self, **over):
         base = {
-            "perfil": Perfil.CLIENTE.value,
             "nome": "Fulano de Tal",
             "email": "fulano@example.com",
-            "senha": "Senha@123",
-            "confirmar_senha": "Senha@123",
+            "senha": "senha123",
+            "data_nascimento": "1990-01-01",
+            "aceite_termos": True,
         }
         base.update(over)
         return base
@@ -73,7 +73,7 @@ class TestCadastrar:
         corpo = resp.json()
         assert corpo["email"] == "fulano@example.com"
         assert corpo["nome"] == "Fulano de Tal"
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "id" in corpo
         assert "senha" not in corpo  # nunca expor senha
 
@@ -93,11 +93,11 @@ class TestCadastrar:
         assert corpo["type"] == "conflict"
         assert "email" in corpo["errors"]
 
-    def test_cadastro_senhas_diferentes_422(self, client):
+    def test_cadastro_sem_aceite_termos_422(self, client):
         token = _csrf(client)
         resp = client.post(
             "/api/cadastrar",
-            json=self._payload(confirmar_senha="Outra@123"),
+            json=self._payload(aceite_termos=False),
             headers={"X-CSRF-Token": token},
         )
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -112,14 +112,17 @@ class TestCadastrar:
     def test_cadastro_senha_fraca_422(self, client):
         token = _csrf(client)
         resp = client.post("/api/cadastrar",
-                           json=self._payload(senha="123", confirmar_senha="123"),
+                           json=self._payload(senha="123"),
                            headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
-    def test_cadastro_perfil_invalido_422(self, client):
+    def test_cadastro_menor_de_idade_422(self, client):
         token = _csrf(client)
-        resp = client.post("/api/cadastrar", json=self._payload(perfil="Inexistente"),
-                           headers={"X-CSRF-Token": token})
+        resp = client.post(
+            "/api/cadastrar",
+            json=self._payload(data_nascimento="2020-01-01"),
+            headers={"X-CSRF-Token": token},
+        )
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
@@ -132,7 +135,7 @@ class TestLogin:
         criar_usuario(usuario_teste["nome"], usuario_teste["email"], usuario_teste["senha"])
         token = _csrf(client)
         resp = client.post("/api/login",
-                           json={"email": usuario_teste["email"], "senha": usuario_teste["senha"]},
+                           json={"identificador": usuario_teste["email"], "senha": usuario_teste["senha"]},
                            headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_200_OK
         assert resp.json()["email"] == usuario_teste["email"]
@@ -141,7 +144,7 @@ class TestLogin:
         criar_usuario(usuario_teste["nome"], usuario_teste["email"], usuario_teste["senha"])
         token = _csrf(client)
         resp = client.post("/api/login",
-                           json={"email": usuario_teste["email"], "senha": "Errada@999"},
+                           json={"identificador": usuario_teste["email"], "senha": "Errada@999"},
                            headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
         assert resp.json()["type"] == "unauthorized"
@@ -149,18 +152,18 @@ class TestLogin:
     def test_login_email_inexistente_401(self, client):
         token = _csrf(client)
         resp = client.post("/api/login",
-                           json={"email": "ninguem@example.com", "senha": "Senha@123"},
+                           json={"identificador": "ninguem@example.com", "senha": "Senha@123"},
                            headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_login_sem_csrf_403(self, client):
         resp = client.post("/api/login",
-                           json={"email": "x@example.com", "senha": "Senha@123"})
+                           json={"identificador": "x@example.com", "senha": "Senha@123"})
         assert resp.status_code == status.HTTP_403_FORBIDDEN
 
     def test_login_payload_invalido_422(self, client):
         token = _csrf(client)
-        resp = client.post("/api/login", json={"email": "invalido", "senha": ""},
+        resp = client.post("/api/login", json={"identificador": "", "senha": ""},
                            headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -168,7 +171,7 @@ class TestLogin:
         token = _csrf(client)
         with bloquear_rate_limiter("routes.auth_routes.login_limiter"):
             resp = client.post("/api/login",
-                               json={"email": "x@example.com", "senha": "Senha@123"},
+                               json={"identificador": "x@example.com", "senha": "Senha@123"},
                                headers={"X-CSRF-Token": token})
         assert resp.status_code == status.HTTP_429_TOO_MANY_REQUESTS
         assert "Retry-After" in resp.headers
@@ -286,7 +289,7 @@ class TestRedefinirSenha:
         # Login com a nova senha deve funcionar
         csrf2 = _csrf(client)
         login = client.post("/api/login",
-                            json={"email": usuario_teste["email"], "senha": "NovaSenha@123"},
+                            json={"identificador": usuario_teste["email"], "senha": "NovaSenha@123"},
                             headers={"X-CSRF-Token": csrf2})
         assert login.status_code == status.HTTP_200_OK
 

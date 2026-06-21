@@ -51,7 +51,7 @@ class TestObterPerfil:
         corpo = response.json()
         assert corpo["nome"] == usuario_teste["nome"]
         assert corpo["email"] == usuario_teste["email"]
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "senha" not in corpo
 
 
@@ -103,7 +103,7 @@ class TestEditarPerfil:
         token = _csrf(client)
         client.post(
             "/api/login",
-            json={"email": "outro@example.com", "senha": "Senha@123"},
+            json={"identificador": "outro@example.com", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
 
@@ -170,7 +170,7 @@ class TestAlterarSenha:
         token = _csrf(cliente_autenticado)
         login = cliente_autenticado.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": "NovaSenha@123"},
+            json={"identificador": usuario_teste["email"], "senha": "NovaSenha@123"},
             headers={"X-CSRF-Token": token},
         )
         assert login.status_code == status.HTTP_200_OK

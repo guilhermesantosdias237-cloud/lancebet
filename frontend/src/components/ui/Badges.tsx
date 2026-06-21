@@ -74,3 +74,73 @@ export function Badge({
     </span>
   )
 }
+
+// =====================================================================
+// Badges de domínio do LanceBet — estética inline preto/branco/cinza do
+// protótipo (sem classes Bootstrap, para casar com o restante do design).
+// =====================================================================
+import type { CSSProperties } from 'react'
+import {
+  StatusEvento,
+  StatusAposta,
+  ResultadoAposta,
+  StatusOpcao,
+  StatusUsuario,
+} from '../../lib/types'
+
+const baseLb: CSSProperties = {
+  fontSize: 10.5,
+  fontWeight: 800,
+  letterSpacing: '.06em',
+  padding: '4px 9px',
+  textTransform: 'uppercase',
+  display: 'inline-block',
+}
+
+function LbBadge({ style, children }: { style: CSSProperties; children: string }) {
+  return <span style={{ ...baseLb, ...style }}>{children}</span>
+}
+
+export function StatusEventoBadge({ status }: { status: string }) {
+  const style: CSSProperties =
+    status === StatusEvento.ABERTO
+      ? { background: '#000', color: '#fff' }
+      : status === StatusEvento.FECHADO
+        ? { background: '#fff', border: '1px solid #000', color: '#000' }
+        : { background: '#B3B5B7', color: '#fff' }
+  return <LbBadge style={style}>{status}</LbBadge>
+}
+
+export function StatusApostaBadge({ status }: { status: string }) {
+  const style: CSSProperties =
+    status === StatusAposta.ABERTA
+      ? { background: '#F4F4F4', border: '1px solid #B3B5B7', color: '#000' }
+      : { background: '#000', color: '#fff' }
+  return <LbBadge style={style}>{status}</LbBadge>
+}
+
+export function ResultadoApostaBadge({ resultado }: { resultado: string }) {
+  const style: CSSProperties =
+    resultado === ResultadoAposta.GANHOU
+      ? { background: '#000', color: '#fff' }
+      : resultado === ResultadoAposta.PERDEU
+        ? { background: '#fff', border: '1px solid #E4E4E4', color: '#B3B5B7' }
+        : { background: '#F4F4F4', border: '1px solid #B3B5B7', color: '#000' }
+  return <LbBadge style={style}>{resultado}</LbBadge>
+}
+
+export function StatusOpcaoBadge({ status }: { status: string }) {
+  const style: CSSProperties =
+    status === StatusOpcao.ATIVA
+      ? { background: '#000', color: '#fff' }
+      : { background: '#F4F4F4', border: '1px dashed #C8C8C8', color: '#B3B5B7' }
+  return <LbBadge style={style}>{status}</LbBadge>
+}
+
+export function StatusUsuarioBadge({ status }: { status: string }) {
+  const style: CSSProperties =
+    status === StatusUsuario.ATIVO
+      ? { background: '#000', color: '#fff' }
+      : { background: '#fff', border: '1px solid #000', color: '#000' }
+  return <LbBadge style={style}>{status}</LbBadge>
+}

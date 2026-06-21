@@ -158,3 +158,108 @@ export const api = {
     request<T>('PATCH', path, { ...opts, body }),
   delete: <T>(path: string, opts?: RequestOpts) => request<T>('DELETE', path, opts),
 }
+
+// =====================================================================
+// Funções de domínio do LanceBet — agrupam os endpoints do contrato.
+// Todas passam pelo cliente central (credentials:include, CSRF automático).
+// Os caminhos são relativos a /api (o prefixo é adicionado em montarUrl).
+// =====================================================================
+
+import type {
+  Usuario,
+  Evento,
+  OpcaoAposta,
+  Aposta,
+  ApostaComSaldo,
+  Carteira,
+  MovimentacaoFinanceira,
+  EventoAdmin,
+  AdminDashboard,
+  LiquidacaoResultado,
+  UsuarioAdmin,
+  PaginaResponse,
+  MensagemResponse,
+} from './types'
+import type {
+  CadastroApostadorForm,
+  CriarApostaForm,
+  CriarEventoForm,
+  AdicionarOpcaoForm,
+  LiquidarEventoForm,
+} from './schemas'
+
+interface ListaParams {
+  status?: string
+  pagina?: number
+  por_pagina?: number
+  [k: string]: string | number | boolean | undefined | null
+}
+
+/** Autenticação (login dual e cadastro de apostador). */
+export const authApi = {
+  me: () => api.get<Usuario>('/me'),
+  login: (identificador: string, senha: string) =>
+    api.post<Usuario>('/login', { identificador, senha }),
+  logout: () => api.post<MensagemResponse>('/logout'),
+  cadastrar: (dados: CadastroApostadorForm) => api.post<Usuario>('/cadastrar', dados),
+}
+
+/** Eventos esportivos públicos. */
+export const eventosApi = {
+  listar: (params: ListaParams = {}) =>
+    api.get<PaginaResponse<Evento>>('/eventos', { params }),
+  obter: (id: number) => api.get<Evento>(`/eventos/${id}`),
+}
+
+/** Apostas do apostador logado. */
+export const apostasApi = {
+  minhas: (params: ListaParams = {}) =>
+    api.get<PaginaResponse<Aposta>>('/apostas/minhas', { params }),
+  criar: (dados: CriarApostaForm) => api.post<ApostaComSaldo>('/apostas', dados),
+}
+
+/** Carteira fictícia. */
+export const carteiraApi = {
+  obter: () => api.get<Carteira>('/carteira'),
+  extrato: (params: { pagina?: number; por_pagina?: number } = {}) =>
+    api.get<PaginaResponse<MovimentacaoFinanceira>>('/carteira/extrato', { params }),
+}
+
+/** Administração do LanceBet. */
+export const adminApi = {
+  dashboard: () => api.get<AdminDashboard>('/admin/dashboard'),
+
+  // Eventos
+  listarEventos: (params: ListaParams = {}) =>
+    api.get<PaginaResponse<EventoAdmin>>('/admin/eventos', { params }),
+  criarEvento: (dados: CriarEventoForm) => api.post<Evento>('/admin/eventos', dados),
+  alterarStatusEvento: (id: number, status: string) =>
+    api.patch<Evento>(`/admin/eventos/${id}/status`, { status }),
+  liquidarEvento: (id: number, dados: LiquidarEventoForm) =>
+    api.post<LiquidacaoResultado>(`/admin/eventos/${id}/liquidar`, dados),
+
+  // Opções de aposta
+  listarOpcoes: (eventoId: number) =>
+    api.get<OpcaoAposta[]>(`/admin/eventos/${eventoId}/opcoes`),
+  adicionarOpcao: (eventoId: number, dados: AdicionarOpcaoForm) =>
+    api.post<OpcaoAposta>(`/admin/eventos/${eventoId}/opcoes`, dados),
+  atualizarOdd: (opcaoId: number, odd: number) =>
+    api.patch<OpcaoAposta>(`/admin/opcoes/${opcaoId}/odd`, { odd }),
+  alterarStatusOpcao: (opcaoId: number, status: string) =>
+    api.patch<OpcaoAposta>(`/admin/opcoes/${opcaoId}/status`, { status }),
+
+  // Usuários e apostas
+  listarUsuarios: (params: { perfil?: string; pagina?: number; por_pagina?: number } = {}) =>
+    api.get<PaginaResponse<UsuarioAdmin>>('/admin/usuarios', { params }),
+  alterarStatusUsuario: (id: number, status: string) =>
+    api.patch<UsuarioAdmin>(`/admin/usuarios/${id}/status`, { status }),
+  listarApostas: (
+    params: {
+      status?: string
+      usuario_id?: number
+      evento_id?: number
+      pagina?: number
+      por_pagina?: number
+    } = {},
+  ) => api.get<PaginaResponse<Aposta>>('/admin/apostas', { params }),
+}

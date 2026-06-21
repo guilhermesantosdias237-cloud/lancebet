@@ -40,7 +40,10 @@ class TestLogin:
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": usuario_teste["senha"]},
+            json={
+                "identificador": usuario_teste["email"],
+                "senha": usuario_teste["senha"],
+            },
             headers={"X-CSRF-Token": token},
         )
 
@@ -48,8 +51,10 @@ class TestLogin:
         corpo = response.json()
         assert corpo["email"] == usuario_teste["email"]
         assert corpo["nome"] == usuario_teste["nome"]
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "foto_url" in corpo
+        # LanceBet: o login retorna o saldo da carteira embutido
+        assert "saldo_ficticio" in corpo
         # Senha nunca deve ser exposta
         assert "senha" not in corpo
 
@@ -65,7 +70,10 @@ class TestLogin:
 
         response = client.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": usuario_teste["senha"]},
+            json={
+                "identificador": usuario_teste["email"],
+                "senha": usuario_teste["senha"],
+            },
         )
 
         assert response.status_code == status.HTTP_403_FORBIDDEN
@@ -77,13 +85,16 @@ class TestLogin:
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": "naoexiste@example.com", "senha": "SenhaQualquer@123"},
+            json={
+                "identificador": "naoexiste@example.com",
+                "senha": "SenhaQualquer@123",
+            },
             headers={"X-CSRF-Token": token},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         detail = response.json()["detail"]
-        assert "e-mail ou senha" in detail.lower()
+        assert "senha inválid" in detail.lower()
         # Não deve revelar que o e-mail não existe
         assert "não cadastrado" not in detail.lower()
 
@@ -98,33 +109,36 @@ class TestLogin:
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": "SenhaErrada@123"},
+            json={
+                "identificador": usuario_teste["email"],
+                "senha": "SenhaErrada@123",
+            },
             headers={"X-CSRF-Token": token},
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "e-mail ou senha" in response.json()["detail"].lower()
+        assert "senha inválid" in response.json()["detail"].lower()
 
-    def test_login_com_email_invalido_retorna_422(self, client):
-        """E-mail malformado deve falhar na validação (422)"""
+    def test_login_com_identificador_vazio_retorna_422(self, client):
+        """Identificador vazio deve falhar na validação (422)"""
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": "email-invalido", "senha": "Senha@123"},
+            json={"identificador": "", "senha": "Senha@123"},
             headers={"X-CSRF-Token": token},
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
         corpo = response.json()
         assert corpo["errors"] is not None
-        assert "email" in corpo["errors"]
+        assert "identificador" in corpo["errors"]
 
     def test_login_com_senha_vazia_retorna_422(self, client):
         """Senha vazia/inválida deve falhar na validação (422)"""
         token = _csrf(client)
         response = client.post(
             "/api/login",
-            json={"email": "teste@example.com", "senha": ""},
+            json={"identificador": "teste@example.com", "senha": ""},
             headers={"X-CSRF-Token": token},
         )
 
@@ -138,16 +152,16 @@ class TestCadastro:
     """Testes de cadastro de usuário"""
 
     def test_cadastro_com_dados_validos_retorna_201(self, client):
-        """Deve cadastrar usuário e retornar UsuarioResponse (201)"""
+        """Deve cadastrar apostador e retornar UsuarioComSaldoResponse (201)"""
         token = _csrf(client)
         response = client.post(
             "/api/cadastrar",
             json={
-                "perfil": Perfil.CLIENTE.value,
                 "nome": "Novo Usuario",
                 "email": "novo@example.com",
-                "senha": "Senha@123",
-                "confirmar_senha": "Senha@123",
+                "senha": "senha123",
+                "data_nascimento": "1990-01-01",
+                "aceite_termos": True,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -156,30 +170,34 @@ class TestCadastro:
         corpo = response.json()
         assert corpo["email"] == "novo@example.com"
         assert corpo["nome"] == "Novo Usuario"
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert corpo["id"] > 0
+        # Crédito fictício de boas-vindas
+        assert corpo["saldo_ficticio"] == 1000.0
         assert "senha" not in corpo
 
-    def test_cadastro_cria_usuario_com_perfil_cliente(self, client):
-        """Cadastro deve persistir o usuário com perfil CLIENTE"""
-        from repo import usuario_repo
+    def test_cadastro_cria_usuario_com_perfil_apostador(self, client):
+        """Cadastro deve persistir o usuário com perfil Apostador e carteira"""
+        from repo import usuario_repo, carteira_repo
 
         token = _csrf(client)
         client.post(
             "/api/cadastrar",
             json={
-                "perfil": Perfil.CLIENTE.value,
                 "nome": "Usuario Teste",
                 "email": "persist@example.com",
-                "senha": "Senha@123",
-                "confirmar_senha": "Senha@123",
+                "senha": "senha123",
+                "data_nascimento": "1990-01-01",
+                "aceite_termos": True,
             },
             headers={"X-CSRF-Token": token},
         )
 
         usuario = usuario_repo.obter_por_email("persist@example.com")
         assert usuario is not None
-        assert usuario.perfil == Perfil.CLIENTE.value
+        assert usuario.perfil == Perfil.APOSTADOR.value
+        # Carteira criada com crédito inicial
+        assert carteira_repo.obter_saldo(usuario.id) == 1000.0
 
     def test_cadastro_com_email_duplicado_retorna_409(self, client, criar_usuario, usuario_teste):
         """E-mail já cadastrado deve retornar 409 (conflito)"""
@@ -193,11 +211,11 @@ class TestCadastro:
         response = client.post(
             "/api/cadastrar",
             json={
-                "perfil": Perfil.CLIENTE.value,
                 "nome": "Outro Nome",
                 "email": usuario_teste["email"],
-                "senha": "OutraSenha@123",
-                "confirmar_senha": "OutraSenha@123",
+                "senha": "outrasenha",
+                "data_nascimento": "1990-01-01",
+                "aceite_termos": True,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -208,35 +226,62 @@ class TestCadastro:
         texto = str(detail).lower()
         assert "mail" in texto
 
-    def test_cadastro_com_senhas_diferentes_retorna_422(self, client):
-        """Senhas que não coincidem devem falhar na validação (422)"""
+    def test_cadastro_menor_de_idade_retorna_422(self, client):
+        """Idade < 18 deve falhar na validação (422)"""
+        from datetime import date
+
+        # Nascido há ~10 anos (menor de idade)
+        data_menor = date.today().replace(year=date.today().year - 10).isoformat()
+
         token = _csrf(client)
         response = client.post(
             "/api/cadastrar",
             json={
-                "perfil": Perfil.CLIENTE.value,
-                "nome": "Usuario Teste",
-                "email": "diff@example.com",
-                "senha": "Senha@123",
-                "confirmar_senha": "SenhaDiferente@123",
+                "nome": "Menor Idade",
+                "email": "menor@example.com",
+                "senha": "senha123",
+                "data_nascimento": data_menor,
+                "aceite_termos": True,
             },
             headers={"X-CSRF-Token": token},
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-        assert response.json()["errors"] is not None
+        corpo = response.json()
+        assert corpo["errors"] is not None
+        assert "data_nascimento" in corpo["errors"]
 
-    def test_cadastro_com_senha_fraca_retorna_422(self, client):
-        """Senha fraca deve falhar na validação (422)"""
+    def test_cadastro_sem_aceite_termos_retorna_422(self, client):
+        """Aceite de termos obrigatório (422 quando ausente/falso)"""
         token = _csrf(client)
         response = client.post(
             "/api/cadastrar",
             json={
-                "perfil": Perfil.CLIENTE.value,
+                "nome": "Sem Termos",
+                "email": "semtermos@example.com",
+                "senha": "senha123",
+                "data_nascimento": "1990-01-01",
+                "aceite_termos": False,
+            },
+            headers={"X-CSRF-Token": token},
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        corpo = response.json()
+        assert corpo["errors"] is not None
+        assert "aceite_termos" in corpo["errors"]
+
+    def test_cadastro_com_senha_fraca_retorna_422(self, client):
+        """Senha com menos de 6 caracteres deve falhar na validação (422)"""
+        token = _csrf(client)
+        response = client.post(
+            "/api/cadastrar",
+            json={
                 "nome": "Usuario Teste",
                 "email": "fraca@example.com",
-                "senha": "123456",
-                "confirmar_senha": "123456",
+                "senha": "123",
+                "data_nascimento": "1990-01-01",
+                "aceite_termos": True,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -416,7 +461,10 @@ class TestRedefinirSenha:
         token2 = _csrf(client)
         login = client.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": "NovaSenhaForte@123"},
+            json={
+                "identificador": usuario_teste["email"],
+                "senha": "NovaSenhaForte@123",
+            },
             headers={"X-CSRF-Token": token2},
         )
         assert login.status_code == status.HTTP_200_OK
@@ -460,7 +508,10 @@ class TestRateLimiting:
             token = _csrf(client)
             ultimo = client.post(
                 "/api/login",
-                json={"email": "teste@example.com", "senha": "SenhaErrada@123"},
+                json={
+                    "identificador": "teste@example.com",
+                    "senha": "SenhaErrada@123",
+                },
                 headers={"X-CSRF-Token": token},
             )
 

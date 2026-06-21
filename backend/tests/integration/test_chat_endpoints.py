@@ -133,7 +133,7 @@ class TestStream:
                 nome="Usuario SSE",
                 email="sse@example.com",
                 senha=criar_hash_senha("Senha@123"),
-                perfil=Perfil.CLIENTE.value,
+                perfil=Perfil.APOSTADOR.value,
             )
         )
 
@@ -142,7 +142,7 @@ class TestStream:
             tok = c.get("/api/csrf-token").json()["token"]
             login = c.post(
                 "/api/login",
-                json={"email": "sse@example.com", "senha": "Senha@123"},
+                json={"identificador": "sse@example.com", "senha": "Senha@123"},
                 headers={"X-CSRF-Token": tok},
             )
             assert login.status_code == status.HTTP_200_OK

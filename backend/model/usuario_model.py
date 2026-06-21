@@ -10,6 +10,9 @@ class Usuario:
     email: str
     senha: str
     perfil: str
+    cpf: Optional[str] = None
+    data_nascimento: Optional[str] = None
+    status: str = "Ativo"
     token_redefinicao: Optional[str] = None
     data_token: Optional[datetime] = None
     data_cadastro: Optional[datetime] = None

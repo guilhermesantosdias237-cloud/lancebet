@@ -1,9 +1,9 @@
 {
-  "name": "webspa-frontend",
+  "name": "lancebet-frontend",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Frontend SPA (React 19 + React Router 7 + Zod + Zustand) para o backend FastAPI do DefaultWebApp.",
+  "description": "Frontend SPA (React 19 + React Router 7 + Zod + Zustand) para o backend FastAPI do LanceBet.",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

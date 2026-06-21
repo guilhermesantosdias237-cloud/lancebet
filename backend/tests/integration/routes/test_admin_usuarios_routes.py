@@ -60,7 +60,7 @@ class TestAdminUsuariosAutorizacao:
                 "nome": "Qualquer Um",
                 "email": "qualquer@example.com",
                 "senha": "Senha@123",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -75,7 +75,7 @@ class TestAdminUsuariosAutorizacao:
                 "nome": "Qualquer Um",
                 "email": "qualquer@example.com",
                 "senha": "Senha@123",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -185,7 +185,7 @@ class TestCriarUsuario:
                 "nome": "Novo Usuario Admin",
                 "email": "novousuario@example.com",
                 "senha": "Senha@123",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -194,14 +194,14 @@ class TestCriarUsuario:
         corpo = response.json()
         assert corpo["nome"] == "Novo Usuario Admin"
         assert corpo["email"] == "novousuario@example.com"
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert corpo["id"] > 0
         assert "senha" not in corpo
 
         # Efeito colateral: usuário realmente persistido
         criado = _obter_usuario("novousuario@example.com")
         assert criado is not None
-        assert criado.perfil == Perfil.CLIENTE.value
+        assert criado.perfil == Perfil.APOSTADOR.value
 
     def test_criar_perfil_admin_201(self, admin_autenticado):
         """Admin pode criar outro admin."""
@@ -228,7 +228,7 @@ class TestCriarUsuario:
                 "nome": "Outro Nome",
                 "email": admin_teste["email"],  # já existe
                 "senha": "Senha@123",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -248,7 +248,7 @@ class TestCriarUsuario:
                 "nome": "Usuario Teste",
                 "email": "fraco@example.com",
                 "senha": "123",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -289,7 +289,7 @@ class TestAlterarUsuario:
                 "id": usuario.id,  # id do corpo deve bater com o da URL
                 "nome": "Usuario Editado",
                 "email": "editado@example.com",
-                "perfil": Perfil.VENDEDOR.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -298,7 +298,7 @@ class TestAlterarUsuario:
         corpo = response.json()
         assert corpo["nome"] == "Usuario Editado"
         assert corpo["email"] == "editado@example.com"
-        assert corpo["perfil"] == Perfil.VENDEDOR.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
 
         # Efeito colateral persistido
         editado = _obter_usuario("editado@example.com")
@@ -318,7 +318,7 @@ class TestAlterarUsuario:
                 "id": usuario.id,
                 "nome": "Nome Editado",
                 "email": "senha@example.com",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -340,7 +340,7 @@ class TestAlterarUsuario:
                 "id": usuario.id + 1000,  # divergente
                 "nome": "Nome Alterado",
                 "email": "div@example.com",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -360,7 +360,7 @@ class TestAlterarUsuario:
                 "id": usuario2.id,
                 "nome": "Usuario 2",
                 "email": "usuario1@example.com",  # pertence ao usuario1
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )
@@ -376,7 +376,7 @@ class TestAlterarUsuario:
                 "id": 99999,
                 "nome": "Nome Alterado",
                 "email": "inexistente@example.com",
-                "perfil": Perfil.CLIENTE.value,
+                "perfil": Perfil.APOSTADOR.value,
             },
             headers={"X-CSRF-Token": token},
         )

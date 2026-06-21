@@ -48,7 +48,7 @@ def _criar_chamado(client, titulo="Titulo de chamado valido",
 
 def _login(client, email, senha):
     token = _csrf(client)
-    return client.post("/api/login", json={"email": email, "senha": senha},
+    return client.post("/api/login", json={"identificador": email, "senha": senha},
                        headers={"X-CSRF-Token": token})
 
 

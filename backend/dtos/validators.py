@@ -1,6 +1,6 @@
 import re
 from typing import Optional, Set, Callable, Any
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 
 
@@ -809,6 +809,133 @@ def validar_tipo(nome_campo: str, tipo_enum: Any) -> Callable[[Any, Any], Any]:
             raise ValueError(
                 f"{nome_campo} deve ter um valor válido. Valores válidos: {tipos_validos}."
             )
+        return v
+
+    return validator
+
+
+# ===== VALIDAÇÕES DO LANCEBET =====
+
+
+def validar_senha_simples(
+    tamanho_minimo: int = 6,
+    tamanho_maximo: int = 128,
+) -> Callable[[Any, Any], Any]:
+    """
+    Valida senha simples para o MVP LanceBet (apenas comprimento mínimo).
+
+    Diferente de ``validar_senha_forte`` (8 caracteres + maiúscula/minúscula/
+    número/especial, usada no fluxo do starter), o cadastro de apostador exige
+    apenas ``tamanho_minimo`` caracteres. Mantida separada para não enfraquecer
+    as senhas administrativas geradas via seed/redefinição.
+
+    Returns:
+        Função validadora para uso com field_validator.
+    """
+
+    def validator(cls: Any, v: Any) -> Any:
+        if not v:
+            raise ValueError("Senha é obrigatória.")
+
+        valor = v.strip() if isinstance(v, str) else v
+
+        if not valor:
+            raise ValueError("Senha é obrigatória.")
+
+        if len(valor) < tamanho_minimo:
+            raise ValueError(f"Senha deve ter no mínimo {tamanho_minimo} caracteres.")
+
+        if len(valor) > tamanho_maximo:
+            raise ValueError(f"Senha deve ter no máximo {tamanho_maximo} caracteres.")
+
+        return valor
+
+    return validator
+
+
+def validar_maioridade(
+    idade_minima: int = 18,
+    formato: str = "%Y-%m-%d",
+) -> Callable[[Any, Any], Any]:
+    """
+    Valida data de nascimento (formato ISO YYYY-MM-DD) e maioridade.
+
+    A idade é calculada a partir de ``date.today()`` (data civil, sem fuso),
+    e o campo é rejeitado se a idade for menor que ``idade_minima``.
+
+    Returns:
+        Função validadora para uso com field_validator. Retorna a string ISO
+        normalizada (sem espaços nas bordas).
+    """
+
+    def validator(cls: Any, v: Any) -> Any:
+        if not v or not (isinstance(v, str) and v.strip()):
+            raise ValueError("Data de nascimento é obrigatória.")
+
+        valor = v.strip()
+
+        try:
+            nascimento = datetime.strptime(valor, formato).date()
+        except ValueError:
+            raise ValueError(
+                "Data de nascimento inválida. Use o formato AAAA-MM-DD."
+            )
+
+        hoje = date.today()
+        if nascimento > hoje:
+            raise ValueError("Data de nascimento não pode estar no futuro.")
+
+        idade = (
+            hoje.year
+            - nascimento.year
+            - ((hoje.month, hoje.day) < (nascimento.month, nascimento.day))
+        )
+
+        if idade < idade_minima:
+            raise ValueError(
+                f"É necessário ter pelo menos {idade_minima} anos para se cadastrar."
+            )
+
+        return valor
+
+    return validator
+
+
+def validar_cpf_opcional(formatar: bool = False) -> Callable[[Any, Any], Any]:
+    """
+    Valida CPF brasileiro, permitindo ausência (None / string vazia).
+
+    Quando informado, aplica a mesma verificação de dígitos de ``validar_cpf``
+    e retorna o CPF normalizado (somente dígitos, ou formatado). Quando ausente,
+    retorna ``None``.
+
+    Returns:
+        Função validadora para uso com field_validator.
+    """
+
+    cpf_validator = validar_cpf(formatar=formatar)
+
+    def validator(cls: Any, v: Any) -> Any:
+        if v is None:
+            return None
+        if isinstance(v, str) and not v.strip():
+            return None
+        return cpf_validator(cls, v)
+
+    return validator
+
+
+def validar_aceite_termos() -> Callable[[Any, Any], Any]:
+    """
+    Valida que o aceite de termos foi marcado (True).
+
+    Returns:
+        Função validadora para uso com field_validator.
+    """
+
+    def validator(cls: Any, v: Any) -> Any:
+        if v is not True:
+            raise ValueError("É necessário aceitar os termos de uso.")
         return v
 
     return validator

@@ -33,11 +33,11 @@ def _registrar(client, nome, email, senha="Senha@123"):
     resp = client.post(
         "/api/cadastrar",
         json={
-            "perfil": "Cliente",
             "nome": nome,
             "email": email,
             "senha": senha,
-            "confirmar_senha": senha,
+            "data_nascimento": "1990-01-01",
+            "aceite_termos": True,
         },
         headers={"X-CSRF-Token": token},
     )
@@ -50,7 +50,7 @@ def _login(client, email, senha="Senha@123"):
     token = _csrf(client)
     resp = client.post(
         "/api/login",
-        json={"email": email, "senha": senha},
+        json={"identificador": email, "senha": senha},
         headers={"X-CSRF-Token": token},
     )
     assert resp.status_code == status.HTTP_200_OK, resp.text

@@ -51,3 +51,25 @@ export function formatarBytes(bytes: number): string {
   if (mb < 1024) return `${mb.toFixed(1)} MB`
   return `${(mb / 1024).toFixed(1)} GB`
 }
+
+// =====================================================================
+// Helpers de exibição do LanceBet (portados de design/lancebet-react/src/lib/format.js).
+// =====================================================================
+
+/** Número -> "R$ 1.234,56" (com sinal negativo "- R$ ..." para débitos). */
+export function fmt(v: number): string {
+  const n = Number(v) || 0
+  const neg = n < 0
+  const f = Math.abs(n).toFixed(2)
+  const p = f.split('.')
+  p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  return (neg ? '- ' : '') + 'R$ ' + p[0] + ',' + p[1]
+}
+
+/** Odd -> "1,85". */
+export function ofmt(o: number): string {
+  return Number(o).toFixed(2).replace('.', ',')
+}
+
+/** Protocolo de aposta -> "LB-000042". */
+export const proto = (id: number): string => 'LB-' + String(id).padStart(6, '0')

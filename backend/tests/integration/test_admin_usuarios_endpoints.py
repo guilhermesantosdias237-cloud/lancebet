@@ -70,7 +70,7 @@ class TestListar:
         for i in range(14):
             criar_usuario_direto(
                 f"Usuario {i}", f"user{i}@example.com", "Senha@123",
-                Perfil.CLIENTE.value,
+                Perfil.APOSTADOR.value,
             )
         resp = admin_autenticado.get("/api/admin/usuarios/?pagina=1&por_pagina=5")
         assert resp.status_code == status.HTTP_200_OK
@@ -90,24 +90,26 @@ class TestListar:
 
     def test_filtro_por_perfil(self, admin_autenticado, criar_usuario_direto):
         criar_usuario_direto("Vend A", "venda@example.com", "Senha@123",
-                             Perfil.VENDEDOR.value)
+                             Perfil.APOSTADOR.value)
         criar_usuario_direto("Vend B", "vendb@example.com", "Senha@123",
-                             Perfil.VENDEDOR.value)
+                             Perfil.APOSTADOR.value)
         criar_usuario_direto("Cli A", "clia@example.com", "Senha@123",
-                             Perfil.CLIENTE.value)
+                             Perfil.APOSTADOR.value)
         resp = admin_autenticado.get(
-            f"/api/admin/usuarios/?perfil={Perfil.VENDEDOR.value}"
+            f"/api/admin/usuarios/?perfil={Perfil.APOSTADOR.value}"
         )
         assert resp.status_code == status.HTTP_200_OK
         corpo = resp.json()
-        assert corpo["total"] == 2
-        assert all(i["perfil"] == Perfil.VENDEDOR.value for i in corpo["items"])
+        # Os três usuários criados acima são Apostadores (o admin autenticado
+        # tem perfil Administrador e não entra no filtro).
+        assert corpo["total"] == 3
+        assert all(i["perfil"] == Perfil.APOSTADOR.value for i in corpo["items"])
 
     def test_filtro_por_termo_q(self, admin_autenticado, criar_usuario_direto):
         criar_usuario_direto("Joana Silva", "joana@example.com", "Senha@123",
-                             Perfil.CLIENTE.value)
+                             Perfil.APOSTADOR.value)
         criar_usuario_direto("Pedro Souza", "pedro@example.com", "Senha@123",
-                             Perfil.CLIENTE.value)
+                             Perfil.APOSTADOR.value)
         resp = admin_autenticado.get("/api/admin/usuarios/?q=joana")
         assert resp.status_code == status.HTTP_200_OK
         corpo = resp.json()
@@ -133,13 +135,13 @@ class TestObter:
 
     def test_obter_sucesso(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Alvo", "alvo@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         resp = admin_autenticado.get(f"/api/admin/usuarios/{uid}")
         assert resp.status_code == status.HTTP_200_OK
         corpo = resp.json()
         assert corpo["id"] == uid
         assert corpo["email"] == "alvo@example.com"
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "senha" not in corpo
 
     def test_obter_id_inexistente_404(self, admin_autenticado):
@@ -158,7 +160,7 @@ class TestCriar:
             "nome": "Novo Usuario",
             "email": "novo@example.com",
             "senha": "Senha@123",
-            "perfil": Perfil.CLIENTE.value,
+            "perfil": Perfil.APOSTADOR.value,
         }
         base.update(over)
         return base
@@ -190,13 +192,13 @@ class TestCriar:
         corpo = resp.json()
         assert corpo["email"] == "novo@example.com"
         assert corpo["nome"] == "Novo Usuario"
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "id" in corpo
         assert "senha" not in corpo
 
     def test_criar_email_duplicado_409(self, admin_autenticado, criar_usuario_direto):
         criar_usuario_direto("Existente", "dup@example.com", "Senha@123",
-                             Perfil.CLIENTE.value)
+                             Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.post(
             "/api/admin/usuarios", json=self._payload(email="dup@example.com"),
@@ -254,7 +256,7 @@ class TestAlterar:
             "id": uid,
             "nome": "Nome Alterado",
             "email": "alterado@example.com",
-            "perfil": Perfil.VENDEDOR.value,
+            "perfil": Perfil.APOSTADOR.value,
         }
         base.update(over)
         return base
@@ -275,7 +277,7 @@ class TestAlterar:
 
     def test_alterar_sem_csrf_403(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("X", "x@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         resp = admin_autenticado.put(f"/api/admin/usuarios/{uid}",
                                      json=self._payload(uid))
         assert resp.status_code == status.HTTP_403_FORBIDDEN
@@ -283,7 +285,7 @@ class TestAlterar:
 
     def test_alterar_sucesso_200(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Antigo", "antigo@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.put(
             f"/api/admin/usuarios/{uid}", json=self._payload(uid),
@@ -294,7 +296,7 @@ class TestAlterar:
         assert corpo["id"] == uid
         assert corpo["nome"] == "Nome Alterado"
         assert corpo["email"] == "alterado@example.com"
-        assert corpo["perfil"] == Perfil.VENDEDOR.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
 
     def test_alterar_id_inexistente_404(self, admin_autenticado):
         token = _csrf(admin_autenticado)
@@ -307,7 +309,7 @@ class TestAlterar:
 
     def test_alterar_id_corpo_diferente_url_400(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Y", "y@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         # id no corpo != id na URL
         resp = admin_autenticado.put(
@@ -321,9 +323,9 @@ class TestAlterar:
 
     def test_alterar_email_duplicado_409(self, admin_autenticado, criar_usuario_direto):
         criar_usuario_direto("Ocupa", "ocupado@example.com", "Senha@123",
-                             Perfil.CLIENTE.value)
+                             Perfil.APOSTADOR.value)
         uid = criar_usuario_direto("Alvo", "alvo2@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.put(
             f"/api/admin/usuarios/{uid}",
@@ -337,7 +339,7 @@ class TestAlterar:
 
     def test_alterar_email_invalido_422(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Z", "z@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.put(
             f"/api/admin/usuarios/{uid}",
@@ -349,7 +351,7 @@ class TestAlterar:
 
     def test_alterar_perfil_invalido_422(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("W", "w@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.put(
             f"/api/admin/usuarios/{uid}",
@@ -381,14 +383,14 @@ class TestExcluir:
 
     def test_excluir_sem_csrf_403(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Del", "del@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         resp = admin_autenticado.delete(f"/api/admin/usuarios/{uid}")
         assert resp.status_code == status.HTTP_403_FORBIDDEN
         assert resp.json()["type"] == "forbidden"
 
     def test_excluir_sucesso_204(self, admin_autenticado, criar_usuario_direto):
         uid = criar_usuario_direto("Del2", "del2@example.com", "Senha@123",
-                                   Perfil.CLIENTE.value)
+                                   Perfil.APOSTADOR.value)
         token = _csrf(admin_autenticado)
         resp = admin_autenticado.delete(f"/api/admin/usuarios/{uid}",
                                         headers={"X-CSRF-Token": token})

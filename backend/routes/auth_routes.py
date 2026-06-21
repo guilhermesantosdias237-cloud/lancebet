@@ -8,18 +8,30 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Request, status
 
 # DTOs (entrada)
-from dtos.auth_dto import LoginDTO, CadastroDTO, EsqueciSenhaDTO, RedefinirSenhaDTO
+from dtos.auth_dto import (
+    LoginLanceBetDTO,
+    CadastroApostadorDTO,
+    EsqueciSenhaDTO,
+    RedefinirSenhaDTO,
+)
 
 # Schemas (saída)
 from dtos.responses.comum import MensagemResponse, TokenCsrfResponse
-from dtos.responses.usuario_response import UsuarioResponse
+from dtos.responses.usuario_response import UsuarioComSaldoResponse
 
 # Models
 from model.usuario_model import Usuario
 from model.usuario_logado_model import UsuarioLogado
+from model.carteira_model import TipoMovimentacao
 
 # Repositories
-from repo import usuario_repo
+from repo import usuario_repo, carteira_repo
+
+# Perfis
+from util.perfis import Perfil
+
+# Conexão (transação atômica do cadastro: carteira + crédito inicial)
+from util.db_util import obter_conexao
 
 # Utilities
 from util.api_helpers import checar_rate_limit
@@ -38,6 +50,9 @@ from util.security import (
 from util.validation_helpers import verificar_email_disponivel
 
 TOKEN_EXPIRACAO_HORAS = 1
+
+# Crédito fictício de boas-vindas concedido a cada novo apostador.
+SALDO_BOAS_VINDAS = 1000.0
 
 router = APIRouter()
 
@@ -79,39 +94,52 @@ async def get_csrf_token(request: Request):
     return TokenCsrfResponse(token=obter_token_csrf(request))
 
 
-@router.get("/me", response_model=UsuarioResponse)
+@router.get("/me", response_model=UsuarioComSaldoResponse)
 @requer_autenticacao()
 async def get_me(request: Request, usuario_logado: Optional[UsuarioLogado] = None):
-    """Retorna o usuário autenticado atual (401 se não houver sessão)."""
+    """Retorna o usuário autenticado atual com o saldo da carteira (401 sem sessão)."""
     assert usuario_logado is not None
     usuario = usuario_repo.obter_por_id(usuario_logado.id)
     if not usuario:
         destruir_sessao(request)
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Sessão inválida.")
-    return UsuarioResponse.de_usuario(usuario)
+    saldo = carteira_repo.obter_saldo(usuario.id)
+    return UsuarioComSaldoResponse.de_usuario_e_saldo(usuario, saldo)
 
 
 # =============================================================================
 # Login / Logout
 # =============================================================================
 
-@router.post("/login", response_model=UsuarioResponse)
-async def post_login(request: Request, dto: LoginDTO):
-    """Autentica o usuário e cria a sessão."""
+@router.post("/login", response_model=UsuarioComSaldoResponse)
+async def post_login(request: Request, dto: LoginLanceBetDTO):
+    """Autentica via e-mail OU CPF + senha e cria a sessão.
+
+    O ``identificador`` pode ser um e-mail (case-insensitive) ou um CPF (com ou
+    sem formatação). Contas com status 'Bloqueado' são impedidas de logar.
+    """
     checar_rate_limit(login_limiter, request)
 
-    usuario = usuario_repo.obter_por_email(dto.email)
+    usuario = usuario_repo.obter_por_email_ou_cpf(dto.identificador)
     if not usuario or not verificar_senha(dto.senha, usuario.senha):
-        logger.warning(f"Login falhou para: {dto.email}")
+        logger.warning(f"Login falhou para: {dto.identificador}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="E-mail ou senha inválidos.",
+            detail="E-mail/CPF ou senha inválidos.",
+        )
+
+    if (usuario.status or "Ativo") == "Bloqueado":
+        logger.warning(f"Login bloqueado para usuário inativo: {usuario.email}")
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Conta bloqueada. Entre em contato com o suporte.",
         )
 
     usuario_logado = UsuarioLogado.from_usuario(usuario)
     criar_sessao(request, usuario_logado)
+    saldo = carteira_repo.obter_saldo(usuario.id)
     logger.info(f"Usuário {usuario.email} autenticado")
-    return UsuarioResponse.de_usuario(usuario)
+    return UsuarioComSaldoResponse.de_usuario_e_saldo(usuario, saldo)
 
 
 @router.post("/logout", response_model=MensagemResponse)
@@ -129,11 +157,16 @@ async def post_logout(request: Request):
 
 @router.post(
     "/cadastrar",
-    response_model=UsuarioResponse,
+    response_model=UsuarioComSaldoResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def post_cadastrar(request: Request, dto: CadastroDTO):
-    """Cria um novo usuário."""
+async def post_cadastrar(request: Request, dto: CadastroApostadorDTO):
+    """Cria uma conta de Apostador com carteira e crédito fictício de boas-vindas.
+
+    O perfil é fixado em 'Apostador' (não vem do cliente). Após inserir o
+    usuário, a carteira (saldo 1000) e a movimentação de crédito inicial são
+    criadas numa única transação atômica.
+    """
     checar_rate_limit(cadastro_limiter, request)
 
     disponivel, mensagem_erro = verificar_email_disponivel(dto.email)
@@ -147,12 +180,27 @@ async def post_cadastrar(request: Request, dto: CadastroDTO):
             },
         )
 
+    # CPF é opcional, mas único quando informado.
+    if dto.cpf and usuario_repo.obter_por_cpf(dto.cpf):
+        msg_cpf = "Este CPF já está cadastrado."
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail={
+                "detail": msg_cpf,
+                "type": "conflict",
+                "errors": {"cpf": [msg_cpf]},
+            },
+        )
+
     usuario = Usuario(
         id=0,
         nome=dto.nome,
         email=dto.email,
         senha=criar_hash_senha(dto.senha),
-        perfil=dto.perfil,
+        perfil=Perfil.APOSTADOR.value,
+        cpf=dto.cpf,
+        data_nascimento=dto.data_nascimento,
+        status="Ativo",
     )
     usuario_id = usuario_repo.inserir(usuario)
     if not usuario_id:
@@ -161,11 +209,35 @@ async def post_cadastrar(request: Request, dto: CadastroDTO):
             detail="Erro ao realizar cadastro. Tente novamente.",
         )
 
-    logger.info(f"Novo usuário cadastrado: {usuario.email}")
+    # Carteira + crédito inicial em uma única transação (rollback em falha).
+    try:
+        with obter_conexao() as conn:
+            carteira_id = carteira_repo.criar_carteira(
+                usuario_id, saldo_inicial=SALDO_BOAS_VINDAS, conn=conn
+            )
+            carteira_repo.registrar_movimentacao(
+                carteira_id=carteira_id,
+                tipo=TipoMovimentacao.CREDITO_INICIAL,
+                valor=SALDO_BOAS_VINDAS,
+                saldo_apos=SALDO_BOAS_VINDAS,
+                descricao="Saldo fictício de boas-vindas",
+                aposta_id=None,
+                conn=conn,
+            )
+    except Exception as e:
+        logger.error(
+            f"Falha ao criar carteira do usuário {usuario_id}: {e}", exc_info=True
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro ao inicializar a carteira. Tente novamente.",
+        )
+
+    logger.info(f"Novo apostador cadastrado: {usuario.email}")
     servico_email.enviar_boas_vindas(usuario.email, usuario.nome)
 
     criado = usuario_repo.obter_por_id(usuario_id)
-    return UsuarioResponse.de_usuario(criado)
+    return UsuarioComSaldoResponse.de_usuario_e_saldo(criado, SALDO_BOAS_VINDAS)
 
 
 # =============================================================================

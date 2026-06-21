@@ -68,7 +68,7 @@ class TestGetPerfil:
         corpo = resp.json()
         assert corpo["email"] == usuario_teste["email"]
         assert corpo["nome"] == usuario_teste["nome"]
-        assert corpo["perfil"] == Perfil.CLIENTE.value
+        assert corpo["perfil"] == Perfil.APOSTADOR.value
         assert "id" in corpo
         assert "foto_url" in corpo
         assert "senha" not in corpo  # nunca expor senha
@@ -194,7 +194,7 @@ class TestPutSenha:
         csrf = _csrf(cliente_autenticado)
         login = cliente_autenticado.post(
             "/api/login",
-            json={"email": usuario_teste["email"], "senha": "NovaSenha@123"},
+            json={"identificador": usuario_teste["email"], "senha": "NovaSenha@123"},
             headers={"X-CSRF-Token": csrf},
         )
         assert login.status_code == status.HTTP_200_OK

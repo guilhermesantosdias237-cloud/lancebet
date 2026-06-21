@@ -125,16 +125,31 @@ def limpar_banco_dados():
             # Verificar se tabelas existem antes de limpar
             cursor.execute(
                 "SELECT name FROM sqlite_master WHERE type='table' "
-                "AND name IN ('chamado', 'chamado_interacao', 'usuario', 'configuracao')"
+                "AND name IN ('chamado', 'chamado_interacao', 'usuario', 'configuracao', "
+                "'movimentacao_financeira', 'aposta', 'opcao_aposta', "
+                "'evento_esportivo', 'carteira')"
             )
             tabelas_existentes = [row[0] for row in cursor.fetchall()]
 
             # Limpar apenas tabelas que existem (respeitando foreign keys)
-            # Limpar chamado_interacao antes de chamado (devido à FK)
+            # Limpar filhas (FK) antes das pais.
             if 'chamado_interacao' in tabelas_existentes:
                 cursor.execute("DELETE FROM chamado_interacao")
             if 'chamado' in tabelas_existentes:
                 cursor.execute("DELETE FROM chamado")
+            # Domínio LanceBet: ordem de FK
+            # movimentacao_financeira -> aposta -> opcao_aposta -> evento_esportivo
+            # movimentacao_financeira -> carteira -> usuario
+            if 'movimentacao_financeira' in tabelas_existentes:
+                cursor.execute("DELETE FROM movimentacao_financeira")
+            if 'aposta' in tabelas_existentes:
+                cursor.execute("DELETE FROM aposta")
+            if 'opcao_aposta' in tabelas_existentes:
+                cursor.execute("DELETE FROM opcao_aposta")
+            if 'evento_esportivo' in tabelas_existentes:
+                cursor.execute("DELETE FROM evento_esportivo")
+            if 'carteira' in tabelas_existentes:
+                cursor.execute("DELETE FROM carteira")
             if 'usuario' in tabelas_existentes:
                 cursor.execute("DELETE FROM usuario")
             if 'configuracao' in tabelas_existentes:
@@ -172,14 +187,19 @@ def client():
         yield test_client
 
 
+# Data de nascimento padrão (maioridade garantida) e CPF nulo para os
+# fixtures de teste que passam pelo cadastro público do LanceBet.
+DATA_NASCIMENTO_TESTE = "1990-01-01"
+
+
 @pytest.fixture
 def usuario_teste():
-    """Dados de um usuário de teste padrão"""
+    """Dados de um usuário de teste padrão (apostador)"""
     return {
         "nome": "Usuario Teste",
         "email": "teste@example.com",
         "senha": "Senha@123",
-        "perfil": Perfil.CLIENTE.value  # Usa Enum Perfil
+        "perfil": Perfil.APOSTADOR.value  # Usa Enum Perfil
     }
 
 
@@ -200,15 +220,20 @@ def criar_usuario(client):
     Fixture que retorna uma função para criar usuários
     Útil para criar múltiplos usuários em um teste
     """
-    def _criar_usuario(nome: str, email: str, senha: str, perfil: str = Perfil.CLIENTE.value):
-        """Cadastra um usuário via endpoint JSON de cadastro (com CSRF)."""
+    def _criar_usuario(nome: str, email: str, senha: str, perfil: str = Perfil.APOSTADOR.value):
+        """Cadastra um apostador via endpoint JSON de cadastro (com CSRF).
+
+        O cadastro público do LanceBet sempre cria perfil 'Apostador'; o
+        parâmetro ``perfil`` é mantido por compatibilidade da assinatura, mas
+        não é enviado (o servidor o fixa).
+        """
         token = client.get("/api/csrf-token").json()["token"]
         response = client.post("/api/cadastrar", json={
-            "perfil": perfil,
             "nome": nome,
             "email": email,
             "senha": senha,
-            "confirmar_senha": senha
+            "data_nascimento": DATA_NASCIMENTO_TESTE,
+            "aceite_termos": True,
         }, headers={"X-CSRF-Token": token})
         return response
 
@@ -222,10 +247,13 @@ def fazer_login(client):
     Retorna o cliente já autenticado
     """
     def _fazer_login(email: str, senha: str):
-        """Faz login via endpoint JSON (com CSRF) e retorna a resposta."""
+        """Faz login via endpoint JSON (com CSRF) e retorna a resposta.
+
+        O login do LanceBet usa o campo ``identificador`` (e-mail OU CPF).
+        """
         token = client.get("/api/csrf-token").json()["token"]
         response = client.post("/api/login", json={
-            "email": email,
+            "identificador": email,
             "senha": senha
         }, headers={"X-CSRF-Token": token})
         return response
@@ -287,7 +315,7 @@ def vendedor_teste():
         "nome": "Vendedor Teste",
         "email": "vendedor@example.com",
         "senha": "Vendedor@123",
-        "perfil": Perfil.VENDEDOR.value
+        "perfil": Perfil.APOSTADOR.value
     }
 
 
@@ -307,7 +335,7 @@ def vendedor_autenticado(client, criar_usuario, fazer_login, vendedor_teste):
         nome=vendedor_teste["nome"],
         email=vendedor_teste["email"],
         senha=criar_hash_senha(vendedor_teste["senha"]),
-        perfil=Perfil.VENDEDOR.value
+        perfil=Perfil.APOSTADOR.value
     )
     usuario_repo.inserir(vendedor)
 
@@ -361,13 +389,13 @@ def dois_usuarios(client, criar_usuario):
         "nome": "Usuario Um",
         "email": "usuario1@example.com",
         "senha": "Senha@123",
-        "perfil": Perfil.CLIENTE.value
+        "perfil": Perfil.APOSTADOR.value
     }
     usuario2 = {
         "nome": "Usuario Dois",
         "email": "usuario2@example.com",
         "senha": "Senha@456",
-        "perfil": Perfil.CLIENTE.value
+        "perfil": Perfil.APOSTADOR.value
     }
 
     # Criar ambos usuários
@@ -440,7 +468,7 @@ def criar_usuario_direto():
         nome: str,
         email: str,
         senha: str,
-        perfil: str = Perfil.CLIENTE.value
+        perfil: str = Perfil.APOSTADOR.value
     ) -> int:
         """
         Cria usuário diretamente no banco.

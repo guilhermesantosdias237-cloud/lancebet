@@ -54,7 +54,7 @@ def _criar_chamado(usuario_id: int, *,
 def cliente_id(criar_usuario_direto):
     """Cria um cliente comum no banco e devolve seu id (dono dos chamados)."""
     return criar_usuario_direto(
-        "Cliente Dono", "dono.chamado@example.com", "Senha@123", Perfil.CLIENTE.value
+        "Cliente Dono", "dono.chamado@example.com", "Senha@123", Perfil.APOSTADOR.value
     )
 
 

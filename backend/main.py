@@ -35,6 +35,9 @@ from repo import (
 )
 from repo import chat_sala_repo, chat_participante_repo, chat_mensagem_repo
 
+# Repositórios do LanceBet (carteira, eventos, apostas)
+from repo import carteira_repo, evento_repo, aposta_repo
+
 # Rotas (API JSON)
 from routes.auth_routes import router as auth_router
 from routes.usuario_routes import router as usuario_router
@@ -47,6 +50,20 @@ from routes.pagamento_routes import router as pagamento_router
 from routes.admin_pagamentos_routes import router as admin_pagamentos_router
 from routes.admin_backups_routes import router as admin_backups_router
 from routes.admin_usuarios_routes import router as admin_usuarios_router
+
+# Routers do LanceBet
+from routes.evento_routes import (
+    router as eventos_router,
+    admin_router as admin_eventos_router,
+    admin_opcoes_router as admin_opcoes_router,
+)
+from routes.aposta_routes import (
+    router as apostas_router,
+    admin_router as admin_apostas_router,
+    admin_liquidacao_router as admin_liquidacao_router,
+    admin_dashboard_router as admin_dashboard_router,
+)
+from routes.carteira_routes import router as carteira_router
 
 # Seeds
 from util.seed_data import inicializar_dados
@@ -95,6 +112,12 @@ if static_path.exists():
 # ---------------------------------------------------------------------------
 TABELAS = [
     (usuario_repo, "usuario"),
+    # LanceBet: ordem de dependência. evento_repo cria evento_esportivo +
+    # opcao_aposta; aposta referencia opcao_aposta; carteira_repo cria carteira
+    # + movimentacao_financeira (movimentacao tem FK para aposta).
+    (evento_repo, "evento_esportivo + opcao_aposta"),
+    (aposta_repo, "aposta"),
+    (carteira_repo, "carteira + movimentacao_financeira"),
     (configuracao_repo, "configuracao"),
     (chamado_repo, "chamado"),
     (chamado_interacao_repo, "chamado_interacao"),
@@ -148,6 +171,15 @@ ROUTERS = [
     (admin_pagamentos_router, ["Admin - Pagamentos"], "admin de pagamentos"),
     (admin_backups_router, ["Admin - Backups"], "admin de backups"),
     (admin_usuarios_router, ["Admin - Usuários"], "admin de usuários"),
+    # LanceBet
+    (eventos_router, ["Eventos"], "eventos (público)"),
+    (apostas_router, ["Apostas"], "apostas"),
+    (carteira_router, ["Carteira"], "carteira"),
+    (admin_eventos_router, ["Admin - Eventos"], "admin de eventos"),
+    (admin_opcoes_router, ["Admin - Eventos"], "admin de opções"),
+    (admin_apostas_router, ["Admin - Apostas"], "admin de apostas"),
+    (admin_liquidacao_router, ["Admin - Eventos"], "admin de liquidação"),
+    (admin_dashboard_router, ["Admin - Dashboard"], "admin dashboard"),
 ]
 
 for router, tags, nome in ROUTERS:

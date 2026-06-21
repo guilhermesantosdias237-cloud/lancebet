@@ -1,145 +1,84 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 
 import RootGate from './components/routing/RootGate'
 import RouteError from './components/routing/RouteError'
-import ProtectedRoute from './components/routing/ProtectedRoute'
-import AdminRoute from './components/routing/AdminRoute'
-import PublicLayout from './components/layout/PublicLayout'
-import PrivateLayout from './components/layout/PrivateLayout'
+import LanceBetLayout from './components/lancebet/LanceBetLayout'
+import RotaApostador from './components/lancebet/RotaApostador'
+import RotaAdmin from './components/lancebet/RotaAdmin'
 
-// Páginas públicas
+// ===== Públicas =====
 import HomePage from './pages/public/HomePage'
-import SobrePage from './pages/public/SobrePage'
-import NotFoundPage from './pages/public/NotFoundPage'
+import RegrasPage from './pages/public/RegrasPage'
 import LoginPage from './pages/auth/LoginPage'
 import CadastroPage from './pages/auth/CadastroPage'
-import EsqueciSenhaPage from './pages/auth/EsqueciSenhaPage'
-import RedefinirSenhaPage from './pages/auth/RedefinirSenhaPage'
+import RecuperarSenhaPage from './pages/auth/RecuperarSenhaPage'
 
-// Exemplos
-import ExemplosIndexPage from './pages/exemplos/ExemplosIndexPage'
-import CamposFormularioPage from './pages/exemplos/CamposFormularioPage'
-import GradeCartoesPage from './pages/exemplos/GradeCartoesPage'
-import ListaTabelaPage from './pages/exemplos/ListaTabelaPage'
-import DetalhesProdutoPage from './pages/exemplos/DetalhesProdutoPage'
-import DetalhesServicoPage from './pages/exemplos/DetalhesServicoPage'
-import DetalhesPerfilPage from './pages/exemplos/DetalhesPerfilPage'
-import DetalhesImovelPage from './pages/exemplos/DetalhesImovelPage'
+// ===== Apostador =====
+import DashboardApostadorPage from './pages/apostador/DashboardPage'
+import EventosPage from './pages/apostador/EventosPage'
+import EventoDetalhePage from './pages/apostador/EventoDetalhePage'
+import ApostaConfirmadaPage from './pages/apostador/ApostaConfirmadaPage'
+import MinhasApostasPage from './pages/apostador/MinhasApostasPage'
+import CarteiraPage from './pages/apostador/CarteiraPage'
 
-// Usuário
-import DashboardPage from './pages/usuario/DashboardPage'
-import PerfilVisualizarPage from './pages/usuario/PerfilVisualizarPage'
-import PerfilEditarPage from './pages/usuario/PerfilEditarPage'
-import AlterarSenhaPage from './pages/usuario/AlterarSenhaPage'
+// ===== Admin =====
+import AdminDashboardPage from './pages/admin/AdminDashboardPage'
+import AdminEventosPage from './pages/admin/AdminEventosPage'
+import AdminOddsPage from './pages/admin/AdminOddsPage'
+import AdminResultadoPage from './pages/admin/AdminResultadoPage'
+import AdminUsuariosPage from './pages/admin/AdminUsuariosPage'
 
-// Chamados
-import ChamadosListarPage from './pages/chamados/ChamadosListarPage'
-import ChamadoCadastrarPage from './pages/chamados/ChamadoCadastrarPage'
-import ChamadoVisualizarPage from './pages/chamados/ChamadoVisualizarPage'
-
-// Notificações
-import NotificacoesPage from './pages/notificacoes/NotificacoesPage'
-
-// Pagamentos
-import PagamentosListarPage from './pages/pagamentos/PagamentosListarPage'
-import PagamentoCriarPage from './pages/pagamentos/PagamentoCriarPage'
-import PagamentoDetalhesPage from './pages/pagamentos/PagamentoDetalhesPage'
-import PagamentoSucessoPage from './pages/pagamentos/PagamentoSucessoPage'
-import PagamentoPendentePage from './pages/pagamentos/PagamentoPendentePage'
-import PagamentoFalhaPage from './pages/pagamentos/PagamentoFalhaPage'
-
-// Admin
-import AdminUsuariosListarPage from './pages/admin/usuarios/AdminUsuariosListarPage'
-import AdminUsuarioCadastrarPage from './pages/admin/usuarios/AdminUsuarioCadastrarPage'
-import AdminUsuarioEditarPage from './pages/admin/usuarios/AdminUsuarioEditarPage'
-import AdminChamadosListarPage from './pages/admin/chamados/AdminChamadosListarPage'
-import AdminChamadoResponderPage from './pages/admin/chamados/AdminChamadoResponderPage'
-import AdminPagamentosListarPage from './pages/admin/pagamentos/AdminPagamentosListarPage'
-import AdminPagamentoDetalhesPage from './pages/admin/pagamentos/AdminPagamentoDetalhesPage'
-import AdminBackupsPage from './pages/admin/backups/AdminBackupsPage'
-import AdminConfiguracoesPage from './pages/admin/config/AdminConfiguracoesPage'
-import AdminAuditoriaLogsPage from './pages/admin/auditoria/AdminAuditoriaLogsPage'
-import AdminAuditoriaRegistrosPage from './pages/admin/auditoria/AdminAuditoriaRegistrosPage'
-
+// O roteador segue exatamente as rotas de design/lancebet-react/src/App.jsx.
+// Toda a árvore vive sob RootGate (carrega a sessão via /api/me uma vez) e
+// LanceBetLayout (Header sticky + conteúdo animado + toasts/modais do uiStore).
+// As páginas legadas do starter (chamados, pagamentos, chat, notificações,
+// exemplos, admin core) permanecem no código-fonte para referência acadêmica,
+// mas não são roteadas no MVP do LanceBet.
 export const router = createBrowserRouter([
   {
     element: <RootGate />,
     errorElement: <RouteError />,
     children: [
-      // ===== Público =====
       {
-        element: <PublicLayout />,
+        element: <LanceBetLayout />,
         children: [
+          // ===== Público =====
           { path: '/', element: <HomePage /> },
-          { path: '/index', element: <HomePage /> },
-          { path: '/sobre', element: <SobrePage /> },
-          { path: '/login', element: <LoginPage /> },
-          { path: '/cadastrar', element: <CadastroPage /> },
-          { path: '/esqueci-senha', element: <EsqueciSenhaPage /> },
-          { path: '/redefinir-senha', element: <RedefinirSenhaPage /> },
-          { path: '/exemplos', element: <ExemplosIndexPage /> },
-          { path: '/exemplos/campos-formulario', element: <CamposFormularioPage /> },
-          { path: '/exemplos/grade-cartoes', element: <GradeCartoesPage /> },
-          { path: '/exemplos/lista-tabela', element: <ListaTabelaPage /> },
-          { path: '/exemplos/detalhes-produto', element: <DetalhesProdutoPage /> },
-          { path: '/exemplos/detalhes-servico', element: <DetalhesServicoPage /> },
-          { path: '/exemplos/detalhes-perfil', element: <DetalhesPerfilPage /> },
-          { path: '/exemplos/detalhes-imovel', element: <DetalhesImovelPage /> },
-        ],
-      },
+          { path: '/entrar', element: <LoginPage /> },
+          { path: '/cadastro', element: <CadastroPage /> },
+          { path: '/recuperar-senha', element: <RecuperarSenhaPage /> },
+          { path: '/regras', element: <RegrasPage /> },
 
-      // ===== Autenticado (qualquer perfil) =====
-      {
-        element: <ProtectedRoute />,
-        children: [
+          // ===== Apostador =====
           {
-            element: <PrivateLayout />,
+            element: <RotaApostador />,
             children: [
-              { path: '/usuario', element: <DashboardPage /> },
-              { path: '/usuario/perfil/visualizar', element: <PerfilVisualizarPage /> },
-              { path: '/usuario/perfil/editar', element: <PerfilEditarPage /> },
-              { path: '/usuario/perfil/alterar-senha', element: <AlterarSenhaPage /> },
-              { path: '/chamados/listar', element: <ChamadosListarPage /> },
-              { path: '/chamados/cadastrar', element: <ChamadoCadastrarPage /> },
-              { path: '/chamados/:id/visualizar', element: <ChamadoVisualizarPage /> },
-              { path: '/notificacoes', element: <NotificacoesPage /> },
-              { path: '/pagamentos/listar', element: <PagamentosListarPage /> },
-              { path: '/pagamentos/criar', element: <PagamentoCriarPage /> },
-              { path: '/pagamentos/sucesso', element: <PagamentoSucessoPage /> },
-              { path: '/pagamentos/paypal/capturar', element: <PagamentoSucessoPage /> },
-              { path: '/pagamentos/pendente', element: <PagamentoPendentePage /> },
-              { path: '/pagamentos/falha', element: <PagamentoFalhaPage /> },
-              { path: '/pagamentos/:id', element: <PagamentoDetalhesPage /> },
+              { path: '/painel', element: <DashboardApostadorPage /> },
+              { path: '/eventos', element: <EventosPage /> },
+              { path: '/eventos/:id', element: <EventoDetalhePage /> },
+              { path: '/aposta-confirmada', element: <ApostaConfirmadaPage /> },
+              { path: '/minhas-apostas', element: <MinhasApostasPage /> },
+              { path: '/carteira', element: <CarteiraPage /> },
             ],
           },
-        ],
-      },
 
-      // ===== Administrador =====
-      {
-        element: <AdminRoute />,
-        children: [
+          // ===== Administrador =====
           {
-            element: <PrivateLayout />,
+            element: <RotaAdmin />,
             children: [
-              { path: '/admin/usuarios/listar', element: <AdminUsuariosListarPage /> },
-              { path: '/admin/usuarios/cadastrar', element: <AdminUsuarioCadastrarPage /> },
-              { path: '/admin/usuarios/editar/:id', element: <AdminUsuarioEditarPage /> },
-              { path: '/admin/chamados/listar', element: <AdminChamadosListarPage /> },
-              { path: '/admin/chamados/:id/responder', element: <AdminChamadoResponderPage /> },
-              { path: '/admin/pagamentos', element: <AdminPagamentosListarPage /> },
-              { path: '/admin/pagamentos/:id', element: <AdminPagamentoDetalhesPage /> },
-              { path: '/admin/backups/listar', element: <AdminBackupsPage /> },
-              { path: '/admin/configuracoes', element: <AdminConfiguracoesPage /> },
-              { path: '/admin/auditoria', element: <AdminAuditoriaLogsPage /> },
-              { path: '/admin/auditoria/registros', element: <AdminAuditoriaRegistrosPage /> },
+              { path: '/admin', element: <AdminDashboardPage /> },
+              { path: '/admin/eventos', element: <AdminEventosPage /> },
+              { path: '/admin/odds', element: <AdminOddsPage /> },
+              { path: '/admin/odds/:id', element: <AdminOddsPage /> },
+              { path: '/admin/resultados', element: <AdminResultadoPage /> },
+              { path: '/admin/usuarios', element: <AdminUsuariosPage /> },
             ],
           },
+
+          // ===== Fallback: redireciona para a home =====
+          { path: '*', element: <Navigate to="/" replace /> },
         ],
       },
-
-      // ===== 404 =====
-      { path: '*', element: <NotFoundPage /> },
     ],
   },
 ])

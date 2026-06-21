@@ -22,7 +22,7 @@ export default function AdminUsuarioEditarPage() {
 
   const [nome, setNome] = useState('')
   const [email, setEmail] = useState('')
-  const [perfil, setPerfil] = useState<string>(Perfil.CLIENTE)
+  const [perfil, setPerfil] = useState<string>(Perfil.APOSTADOR)
   const [erros, setErros] = useState<Erros>({})
   const [enviando, setEnviando] = useState(false)
 
