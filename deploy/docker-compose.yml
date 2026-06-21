@@ -1,3 +1,4 @@
+name: lancebet
 # Execute a partir do diretório deploy/ (ou aponte -f deploy/docker-compose.yml).
 # O contexto de build é a RAIZ do repositório, pois o Dockerfile multi-stage
 # precisa de frontend/ (build do SPA) e backend/ (API FastAPI).
@@ -26,4 +27,6 @@ services:
 
 volumes:
   lancebet_data:
+    name: deploy_lancebet_data
   lancebet_uploads:
+    name: deploy_lancebet_uploads
