@@ -87,7 +87,10 @@ export default function Header() {
                 <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: '.12em', color: '#7F7F7F' }}>SALDO FICTÍCIO</span>
                 <span style={{ fontSize: 15, fontWeight: 900 }}>{fmt(usuario.saldo_ficticio)}</span>
               </div>
-              <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{usuario.nome.split(' ')[0]}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                {usuario.foto_url && <img src={usuario.foto_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(255,255,255,.25)' }} />}
+                <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{usuario.nome.split(' ')[0]}</span>
+              </div>
               <button onClick={handleLogout} style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,.3)', color: '#fff', fontWeight: 700, fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', padding: '8px 13px', cursor: 'pointer' }}>
                 Sair
               </button>
@@ -106,7 +109,10 @@ export default function Header() {
               <NavLink to="/admin/usuarios">Usuários</NavLink>
             </nav>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
-              <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{usuario.nome}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+                {usuario.foto_url && <img src={usuario.foto_url} alt="" style={{ width: 30, height: 30, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid rgba(255,255,255,.25)' }} />}
+                <span style={{ fontSize: 13, fontWeight: 600, opacity: 0.85 }}>{usuario.nome}</span>
+              </div>
               <button onClick={handleLogout} style={{ background: 'transparent', border: '1.5px solid rgba(255,255,255,.3)', color: '#fff', fontWeight: 700, fontSize: 11, letterSpacing: '.06em', textTransform: 'uppercase', padding: '8px 13px', cursor: 'pointer' }}>
                 Sair
               </button>

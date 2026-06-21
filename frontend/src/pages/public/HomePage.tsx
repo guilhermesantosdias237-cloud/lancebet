@@ -11,6 +11,7 @@ import Footer from '../../components/lancebet/Footer'
 import { Button } from '../../components/lancebet/ui'
 import Spinner from '../../components/ui/Spinner'
 import iconWhite from '../../assets/icon_white.svg'
+import { HERO_HOME } from '../../lib/imagens'
 
 const steps = [
   { n: '01', t: 'Crie sua conta', d: 'Cadastro rápido com validação de maioridade pela data de nascimento.' },
@@ -30,8 +31,10 @@ export default function HomePage() {
   return (
     <div>
       <section style={{ background: '#000', color: '#fff', position: 'relative', overflow: 'hidden' }}>
+        <img src={HERO_HOME} alt="" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', opacity: 0.28, pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(90deg, #000 32%, rgba(0,0,0,.45) 100%)', pointerEvents: 'none' }} />
         <img src={iconWhite} alt="" style={{ position: 'absolute', right: -60, top: '50%', transform: 'translateY(-50%)', height: 560, opacity: 0.06, pointerEvents: 'none' }} />
-        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '88px 28px 76px', position: 'relative' }}>
+        <div style={{ maxWidth: 1280, margin: '0 auto', padding: '88px 28px 76px', position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: 9, border: '1px solid rgba(255,255,255,.25)', padding: '7px 14px', marginBottom: 30 }}>
             <span style={{ width: 7, height: 7, background: '#fff', borderRadius: '50%' }} />
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '.18em', color: '#B3B5B7' }}>PLATAFORMA SIMULADA · SALDO FICTÍCIO</span>

@@ -87,7 +87,10 @@ def _contadores_evento(evento_id: int) -> tuple[int, float]:
     except Exception:
         return (0, 0.0)
     try:
-        return aposta_repo.contadores_por_evento(evento_id)
+        return (
+            aposta_repo.contar_por_evento(evento_id),
+            aposta_repo.volume_por_evento(evento_id),
+        )
     except AttributeError:
         return (0, 0.0)
 

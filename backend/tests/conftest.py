@@ -227,6 +227,11 @@ def criar_usuario(client):
         parâmetro ``perfil`` é mantido por compatibilidade da assinatura, mas
         não é enviado (o servidor o fixa).
         """
+        # O cadastro autentica o novo usuário (cria sessão). Como esta fixture
+        # apenas PROVISIONA contas, preservamos a sessão que já existia no client
+        # (anônima ou de outro usuário, p.ex. admin) salvando e restaurando os
+        # cookies em torno da chamada — assim criar_usuario é neutro à sessão.
+        cookies_anteriores = dict(client.cookies)
         token = client.get("/api/csrf-token").json()["token"]
         response = client.post("/api/cadastrar", json={
             "nome": nome,
@@ -235,6 +240,8 @@ def criar_usuario(client):
             "data_nascimento": DATA_NASCIMENTO_TESTE,
             "aceite_termos": True,
         }, headers={"X-CSRF-Token": token})
+        client.cookies.clear()
+        client.cookies.update(cookies_anteriores)
         return response
 
     return _criar_usuario

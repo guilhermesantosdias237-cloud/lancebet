@@ -22,7 +22,7 @@ const variants: Record<string, CSSProperties> = {
   lightHover: { background: '#B3B5B7' },
   outline: { background: 'transparent', color: '#000', border: '1.5px solid #000' },
   outlineHover: { background: '#F4F4F4' },
-  ghostDark: { background: 'transparent', color: '#fff', border: '1.5px solid rgba(255,255,255,.4)' },
+  ghostDark: { background: 'transparent', color: '#fff', borderWidth: 1.5, borderStyle: 'solid', borderColor: 'rgba(255,255,255,.4)' },
   ghostDarkHover: { borderColor: '#fff' },
 }
 
@@ -134,9 +134,11 @@ export function apostaBadgeStyle(b: { status: string; resultado: string }): CSSP
 }
 
 export function optionCardStyle(sel: boolean, sus: boolean): CSSProperties {
-  if (sus) return { background: '#F4F4F4', border: '2px dashed #C8C8C8', color: '#B3B5B7' }
-  if (sel) return { background: '#000', color: '#fff', border: '2px solid #000' }
-  return { background: '#fff', border: '2px solid #E4E4E4' }
+  // Borda em longhand (borderWidth/Style/Color) para combinar com o hover
+  // borderColor do HoverCard sem disparar o aviso de shorthand do React.
+  if (sus) return { background: '#F4F4F4', borderWidth: 2, borderStyle: 'dashed', borderColor: '#C8C8C8', color: '#B3B5B7' }
+  if (sel) return { background: '#000', color: '#fff', borderWidth: 2, borderStyle: 'solid', borderColor: '#000' }
+  return { background: '#fff', borderWidth: 2, borderStyle: 'solid', borderColor: '#E4E4E4' }
 }
 
 export function tabStyle(active: boolean): CSSProperties {

@@ -237,6 +237,12 @@ async def post_cadastrar(request: Request, dto: CadastroApostadorDTO):
     servico_email.enviar_boas_vindas(usuario.email, usuario.nome)
 
     criado = usuario_repo.obter_por_id(usuario_id)
+
+    # Autentica o recém-cadastrado: o cadastro já deixa o usuário logado, de
+    # modo que o SPA pode redirecionar direto ao painel com sessão válida (sem
+    # 401 nas chamadas autenticadas seguintes).
+    criar_sessao(request, UsuarioLogado.from_usuario(criado))
+
     return UsuarioComSaldoResponse.de_usuario_e_saldo(criado, SALDO_BOAS_VINDAS)
 
 
