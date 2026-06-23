@@ -1,5 +1,157 @@
 # Tutorial: CRUD de Times/Participantes + select no formulário de evento
 
+## Setup — preparando seu computador do zero
+
+Antes de mexer no código, você precisa deixar a máquina pronta. Esta seção ensina tudo desde o começo:
+instalar os programas, baixar o projeto, ligar o backend e o frontend. Se você já tem alguma coisa
+instalada, pode pular essa parte específica — mas leia os comandos de verificação para ter certeza de
+que está tudo no lugar.
+
+> O que é "backend" e "frontend"? O **backend** é a parte que roda escondida, no servidor: ele guarda
+> os dados e responde aos pedidos. O **frontend** é a parte que você vê no navegador: telas, botões,
+> formulários. Neste projeto, os dois ficam em pastas separadas (`backend` e `frontend`) e precisam
+> rodar ao mesmo tempo.
+
+### 1. Instalar os programas
+
+Você vai precisar de quatro programas. Instale cada um e depois confirme que funcionou rodando o
+comando de verificação no terminal.
+
+**Git** — é a ferramenta que baixa o projeto e controla as versões do código (quem mudou o quê e
+quando). Baixe em https://git-scm.com/downloads. Para conferir:
+
+```bash
+git --version
+```
+
+**Python 3.11 ou mais novo** — é a linguagem do backend. Baixe em https://www.python.org/downloads/.
+Escolha a versão **3.11** (ou 3.12/3.13). Para conferir:
+
+```bash
+python --version
+```
+
+> Atenção a uma pegadinha deste projeto: existe um arquivo chamado `.python-version` apontando para a
+> versão 3.14, que talvez **nem exista ainda** no seu computador. Não se preocupe com ele. Mais para
+> frente, quando criarmos o "ambiente virtual" do Python, vamos forçar o uso da 3.11, e tudo funciona.
+
+**Bun** — é o gerenciador de pacotes do frontend (baixa as bibliotecas que o site usa e roda o
+servidor de desenvolvimento). É o que usamos no lugar do `npm`. Baixe em https://bun.sh. Para conferir:
+
+```bash
+bun --version
+```
+
+**VSCode** — é o editor de código onde você vai escrever tudo. Baixe em https://code.visualstudio.com.
+
+### 2. Baixar o projeto (clonar o repositório)
+
+"Clonar" significa baixar uma cópia completa do projeto para o seu computador. Abra o terminal, vá
+até a pasta onde você guarda seus projetos e rode:
+
+```bash
+git clone https://github.com/guilhermesantosdias237-cloud/lancebet.git
+```
+
+Isso cria uma pasta `lancebet` com tudo dentro. Entre nela:
+
+```bash
+cd lancebet
+```
+
+### 3. Criar uma branch para o seu trabalho
+
+Antes de começar a mexer no código, crie uma **branch** (uma "ramificação" do projeto). Pense nela
+como uma cópia paralela onde você trabalha à vontade sem bagunçar a versão principal. Se algo der
+errado, é só voltar para a branch principal e a sua confusão fica isolada.
+
+```bash
+git checkout -b minha-feature
+```
+
+O `-b` cria a branch nova e já te leva para dentro dela. A partir daqui, todas as suas mudanças ficam
+nessa branch separada.
+
+### 4. Preparar o backend
+
+O backend usa um **ambiente virtual** (chamado `.venv`): uma "caixa" isolada onde ficam as bibliotecas
+do Python só deste projeto, sem misturar com o resto do seu computador. Entre na pasta `backend` e
+crie o ambiente forçando o Python 3.11:
+
+```bash
+cd backend
+python3.11 -m venv .venv
+```
+
+> Por que `python3.11` e não só `python`? Para garantir que o ambiente use a versão certa e ignorar a
+> 3.14 que o arquivo `.python-version` pede. Se no seu sistema o comando do Python 3.11 tiver outro
+> nome, use o que funcionar (ex.: `python3`), contanto que `python --version` dentro do ambiente
+> mostre 3.11 ou superior.
+
+Agora **ative** o ambiente (isso liga a "caixa"):
+
+```bash
+# macOS / Linux
+source .venv/bin/activate
+# Windows (PowerShell)
+.venv\Scripts\Activate.ps1
+```
+
+Com o ambiente ativo, instale as bibliotecas que o backend precisa:
+
+```bash
+pip install -r requirements.txt
+```
+
+### 5. Preparar o frontend
+
+Abra **outro** terminal (deixe o do backend aberto), vá até a pasta `frontend` e instale as
+bibliotecas com o Bun:
+
+```bash
+cd frontend
+bun install
+```
+
+### 6. Ligar tudo
+
+Com os dois preparados, é hora de rodar. Use dois terminais ao mesmo tempo.
+
+**Terminal do backend** (a partir da pasta `backend`, com o `.venv` ativo):
+
+```bash
+.venv/bin/python main.py
+```
+
+**Terminal do frontend** (a partir da pasta `frontend`):
+
+```bash
+bun run dev
+```
+
+Pronto. O backend sobe a API e o frontend abre o site no navegador. As portas e o endereço exato
+aparecem mais abaixo, na seção **Pré-requisitos**.
+
+### 7. Extensões recomendadas do VSCode
+
+No VSCode, abra a aba de extensões (ícone de blocos na barra lateral) e instale estas. Cada uma deixa
+sua vida mais fácil de um jeito:
+
+- **Python** — dá suporte básico à linguagem Python (rodar, depurar, reconhecer arquivos `.py`).
+- **Pylance** — autocompletar inteligente e checagem de tipos enquanto você digita Python.
+- **Python Debugger** — permite pausar o código e investigar o que está acontecendo passo a passo.
+- **Python Environments** — ajuda a escolher e gerenciar o ambiente virtual (`.venv`) certo.
+- **ESLint** — aponta erros e problemas de estilo no código do frontend (JavaScript/TypeScript).
+- **SQLite3 Editor** — abre e mostra o banco de dados SQLite direto no editor, sem ferramenta extra.
+- **vscode-icons** — coloca ícones bonitos nos arquivos e pastas, facilitando achar as coisas.
+- **HTML CSS Support** — autocompletar para HTML e CSS nas telas.
+
+> Dica sobre o gerenciador de pacotes: neste projeto o gerenciador oficial do frontend é o **Bun**,
+> não o `npm`. Se em algum comando você vir `npm`, troque pelo equivalente em `bun` (ex.: `npm install`
+> vira `bun install`, `npm run dev` vira `bun run dev`).
+
+---
+
 Bem-vindo(a)! Este tutorial é **passo a passo** e foi escrito para quem está começando. Vamos
 implementar uma feature inteira no projeto **LanceBet**, do banco de dados até a tela. Siga **na
 ordem**, copie os códigos **exatamente** como estão e leia as explicações curtas embaixo de cada
@@ -13,17 +165,26 @@ bloco. Se você seguir tudo ao pé da letra, no final terá a feature funcionand
 
 ## O que você vai construir
 
-Você vai criar um **cadastro de Times/Participantes** (CRUD completo, só para administradores) e,
-em seguida, usar esse cadastro para **trocar os dois campos de texto** ("Mandante" e "Visitante")
-do formulário de criação de evento por **dois `<select>`** (caixas de seleção) que listam os times
-cadastrados — mostrando inclusive o **escudo** de cada time.
+Você vai criar um **cadastro de Times/Participantes** e depois usar esse cadastro para **trocar os
+dois campos de texto** ("Mandante" e "Visitante") do formulário de criar evento por **duas caixas de
+seleção** (os tais `<select>`) que listam os times já cadastrados — mostrando até o **escudo** de
+cada um.
+
+O cadastro vai ser um **CRUD** completo, só para administradores. CRUD é a sigla das quatro coisas
+básicas que dá para fazer com um dado: **C**reate (criar), **R**ead (ler/listar), **U**pdate
+(atualizar) e **D**elete (apagar). Ou seja: criar um time, ver a lista, editar e excluir.
 
 Resultado final:
 
 - Uma tabela nova no banco: `participante` (campos: `id`, `nome`, `escudo_url`, `esporte`, `ativo`).
 - Camada de acesso a dados (repo + SQL puro) espelhando o módulo de evento.
 - DTOs de entrada (`CriarParticipanteDTO`, `AtualizarParticipanteDTO`) e DTO de saída (`ParticipanteResponse`).
+  Um **DTO** ("Data Transfer Object", objeto de transferência de dados) é só uma caixinha que define
+  quais campos entram e quais campos saem da API, com as regras de validação. "De entrada" é o que o
+  usuário manda; "de saída" é o que a API devolve.
 - Um router admin de times com CRUD (`/api/admin/times`) e um endpoint público de listagem para o select.
+  Um **endpoint** é um endereço da API que aceita um pedido (por exemplo, `GET /api/times` significa
+  "me dê a lista de times").
 - O cliente do front (`participantesApi` em `api.ts`), o tipo (`types.ts`) e o schema Zod (`schemas.ts`).
 - Uma página nova **AdminTimesPage** (`/admin/times`) para gerenciar os times.
 - O formulário de evento (**AdminEventosPage**) com **dois selects** de mandante/visitante mostrando o escudo.
@@ -42,41 +203,45 @@ cd /Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend
 .venv/bin/python main.py
 ```
 
-Isso sobe a API. A porta vem do arquivo `backend/.env` (`PORT`, default `8413`). A documentação
-interativa fica em `http://localhost:8413/docs`.
+Isso liga a API. A porta vem do arquivo `backend/.env` (`PORT`, valor padrão `8413`). A documentação
+interativa — uma página onde dá para testar a API direto no navegador — fica em
+`http://localhost:8413/docs`.
 
 > Atenção: o `.python-version` aponta para uma versão de Python que pode não estar instalada.
-> **Sempre** use o interpretador do ambiente virtual: `.venv/bin/python`. Não use só `python`.
+> **Sempre** use o Python de dentro do ambiente virtual: `.venv/bin/python`. Não use só `python`,
+> senão você corre o risco de usar o Python errado.
 
 **Terminal 2 — Frontend** (a partir da pasta `frontend`):
 
 ```bash
 cd /Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend
-npm run dev
+bun run dev
 ```
 
-O Vite sobe o front na porta `5183` e faz proxy de `/api` para o backend. Abra
-`http://localhost:5183` no navegador.
+O Vite (a ferramenta que monta e serve o frontend) liga o site na porta `5183` e redireciona os
+pedidos de `/api` para o backend. Abra `http://localhost:5183` no navegador.
 
 **Login de administrador** (necessário para ver as telas de admin):
 
 - E-mail: `lancebet@ifes.site`
 - Senha: `Admin!123`
 
-Para conferir os tipos do front sem subir nada (útil ao terminar), rode na pasta `frontend`:
+Para conferir os tipos do front sem ligar nada (útil ao terminar), rode na pasta `frontend`:
 
 ```bash
-npx tsc -b --noEmit
+bunx tsc -b --noEmit
 ```
 
 ---
 
 ## As camadas que vamos tocar e a ORDEM de implementação
 
-O LanceBet tem **arquitetura em camadas**. No backend: `Routes → DTOs → Repos → SQL → DB`. No front:
-`api.ts → types.ts → schemas.ts → páginas → router`.
+O LanceBet é organizado em **camadas** — cada parte do código tem uma responsabilidade só, e uma
+camada conversa com a de baixo. No backend a ordem é `Routes → DTOs → Repos → SQL → DB` (das telas
+até o banco). No frontend: `api.ts → types.ts → schemas.ts → páginas → router`. Separar assim deixa
+o código mais fácil de entender e de mexer.
 
-Vamos implementar **de baixo para cima** (do banco até a tela). A ordem é esta:
+Vamos construir **de baixo para cima** (do banco até a tela). A ordem é esta:
 
 1. **SQL** (`backend/sql/participante_sql.py`) — as queries da tabela nova.
 2. **Model** (`backend/model/participante_model.py`) — a dataclass + enum.
@@ -93,10 +258,10 @@ Vamos implementar **de baixo para cima** (do banco até a tela). A ordem é esta
 13. **Registrar a rota da página** (`frontend/src/router.tsx`).
 14. **Adicionar item no menu** (`frontend/src/components/lancebet/Header.tsx`).
 
-**Por que essa ordem?** Cada camada usa a de baixo. O repo importa o SQL e o model; o router importa
-o DTO, o response e o repo; o front consome o contrato que o backend expõe. Construindo de baixo para
-cima, quando você chega numa camada, tudo que ela precisa **já existe**. Se você começasse pela tela,
-ficaria chamando coisas que ainda não foram criadas.
+**Por que essa ordem?** Cada camada usa a de baixo. O repo usa o SQL e o model; o router usa o DTO, o
+response e o repo; o frontend usa aquilo que o backend disponibiliza. Construindo de baixo para cima,
+quando você chega numa camada, tudo que ela precisa **já existe**. Se você começasse pela tela,
+ficaria chamando coisas que ainda nem foram criadas — e nada funcionaria.
 
 ---
 
@@ -105,9 +270,11 @@ ficaria chamando coisas que ainda não foram criadas.
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/sql/participante_sql.py`
 **Tipo:** ARQUIVO NOVO
 
-Este projeto **não usa ORM**. Todo SQL é escrito à mão, em constantes string, com `?` no lugar dos
-valores (prepared statements). Crie o arquivo com o conteúdo abaixo, copiando o estilo de
-`backend/sql/evento_sql.py`.
+Este projeto **não usa ORM** (uma ferramenta que escreveria o SQL por você automaticamente). Aqui,
+todo o SQL é escrito à mão, guardado em variáveis de texto, com `?` no lugar dos valores. Esse `?` é
+o que se chama de "prepared statement": em vez de grudar o valor direto na consulta, você deixa o
+banco preencher com segurança — isso evita um ataque clássico chamado SQL injection. Crie o arquivo
+com o conteúdo abaixo, copiando o estilo de `backend/sql/evento_sql.py`.
 
 ```python
 """
@@ -173,8 +340,9 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/model/participante_model.py`
 **Tipo:** ARQUIVO NOVO
 
-O model é uma **dataclass** (sem ORM), igual a `model/evento_model.py`. Como `esporte` é um campo
-livre simples, vamos usar uma `str` (não precisamos de enum aqui).
+O model é a representação do dado em Python: uma **dataclass**, que é uma classe simples feita só para
+guardar campos (igual a `model/evento_model.py`). Como `esporte` é um campo de texto livre, basta uma
+`str` comum — não precisamos de uma lista fixa de opções aqui.
 
 ```python
 """
@@ -213,9 +381,10 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/repo/participante_repo.py`
 **Tipo:** ARQUIVO NOVO
 
-O repo tem as **funções** que executam o SQL. Espelha `repo/evento_repo.py`: usa o context manager
-`obter_conexao()`, sempre passa os parâmetros como **tupla**, e tem uma função privada
-`_row_to_participante` que transforma a linha do banco em objeto.
+O repo (de "repositório") tem as **funções** que de fato executam o SQL e falam com o banco. Ele
+espelha o `repo/evento_repo.py`: usa o `obter_conexao()` para abrir a conexão com segurança, sempre
+passa os valores como **tupla** (aquela lista entre parênteses), e tem uma função interna
+`_row_to_participante` que pega uma linha vinda do banco e a transforma num objeto Python.
 
 ```python
 """
@@ -345,14 +514,14 @@ def excluir(id: int) -> bool:
 
 Pontos importantes:
 
-- **`with obter_conexao() as conn:`** — esse context manager (de `util/db_util.py`) faz `commit` no
-  sucesso, `rollback` no erro, e já liga `row_factory = sqlite3.Row` (por isso você lê por nome:
-  `row["nome"]`).
-- **Sempre tupla de parâmetros**: `cursor.execute(SQL, (a, b, c))`. **Nunca** coloque valores
-  direto na string SQL (isso abre brecha de SQL injection e quebra o padrão do projeto).
-- `criar` retorna `cursor.lastrowid` (o id novo). `atualizar`/`excluir` retornam
-  `cursor.rowcount > 0` (se mexeu em alguma linha). Esse é o **mesmo padrão de assinatura** do
-  `evento_repo`.
+- **`with obter_conexao() as conn:`** — essa estrutura (de `util/db_util.py`) cuida da conexão para
+  você: salva as mudanças (`commit`) se deu tudo certo, desfaz (`rollback`) se deu erro, e já configura
+  o banco para você ler os campos pelo nome (por isso funciona `row["nome"]`).
+- **Sempre passe os valores como tupla**: `cursor.execute(SQL, (a, b, c))`. **Nunca** cole os valores
+  direto no texto do SQL — isso abre a brecha de SQL injection e foge do padrão do projeto.
+- `criar` devolve `cursor.lastrowid` (o id que acabou de ser criado). `atualizar` e `excluir` devolvem
+  `cursor.rowcount > 0` (ou seja, `True` se mexeram em alguma linha). É o **mesmo formato de função**
+  do `evento_repo`.
 - A função `criar_tabela()` é o que o `main.py` vai chamar no startup (Passo 7).
 
 ---
@@ -362,10 +531,11 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/dtos/participante_dto.py`
 **Tipo:** ARQUIVO NOVO
 
-DTO de entrada valida o que **chega** na API. Usamos `pydantic.BaseModel` com `Field(...)` e
-`field_validator`, reaproveitando o validador `validar_string_obrigatoria` de `dtos/validators.py`
-(o mesmo que o `evento_dto.py` usa). Quando um validador levanta `ValueError`, o FastAPI devolve
-um erro **422** automaticamente.
+O DTO de entrada confere se o que **chega** na API está certo (por exemplo: o nome não pode ser vazio).
+Usamos `pydantic.BaseModel` com `Field(...)` e `field_validator`, reaproveitando o validador
+`validar_string_obrigatoria` de `dtos/validators.py` (o mesmo que o `evento_dto.py` usa). Quando uma
+validação falha, o FastAPI já devolve sozinho um erro **422** (o código que significa "você mandou um
+dado inválido").
 
 ```python
 """
@@ -411,11 +581,12 @@ class AtualizarParticipanteDTO(BaseModel):
 
 Pontos importantes:
 
-- `Field(...)` (com as reticências) significa **campo obrigatório**. `Field(default=...)` dá um
-  valor padrão (campo opcional).
-- `validar_string_obrigatoria(nome_campo=..., tamanho_minimo=..., tamanho_maximo=...)` é uma
-  **factory**: ela retorna uma função de validação. Por isso o uso é
-  `field_validator("nome")(validar_string_obrigatoria(...))` — exatamente como em `evento_dto.py`.
+- `Field(...)` (com as três bolinhas) quer dizer **campo obrigatório**. `Field(default=...)` dá um
+  valor pronto quando o usuário não manda nada (campo opcional).
+- `validar_string_obrigatoria(nome_campo=..., tamanho_minimo=..., tamanho_maximo=...)` é uma função que
+  **fabrica outra função** de validação (chamamos isso de factory). É por isso que ela aparece chamada
+  duas vezes: `field_validator("nome")(validar_string_obrigatoria(...))` — exatamente como em
+  `evento_dto.py`.
 - Os dois DTOs são praticamente iguais aqui; mantê-los separados deixa claro qual é "criar" e qual é
   "atualizar", e segue o padrão do projeto (que tem `CriarEventoDTO` e `AtualizarEventoDTO`).
 
@@ -426,9 +597,9 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/dtos/responses/participante_response.py`
 **Tipo:** ARQUIVO NOVO
 
-O Response define o **formato exato** que sai da API. Ele tem que **espelhar** o tipo do front (que
-você vai criar no Passo 8). Use uma classmethod factory `de_participante(model)`, igual a
-`de_evento` em `evento_response.py`.
+O Response define o **formato exato** daquilo que a API devolve. Ele tem que ser igualzinho ao tipo do
+frontend (que você cria no Passo 8) — se um lado mandar um campo que o outro não espera, o dado se
+perde. Use o método de fábrica `de_participante(model)`, igual ao `de_evento` em `evento_response.py`.
 
 ```python
 """
@@ -467,10 +638,11 @@ class ParticipanteResponse(BaseModel):
 
 Pontos importantes:
 
-- O Response é separado do DTO de entrada de propósito: **entrada** e **saída** podem ter campos
-  diferentes (ex.: a saída tem `id`, a entrada não).
-- A factory `de_participante` recebe o **model** e devolve o **response**. Sempre construa o response
-  por essa factory (igual o router faz com `EventoResponse.de_evento`).
+- O Response é separado do DTO de entrada de propósito: o que **entra** e o que **sai** podem ter
+  campos diferentes (por exemplo, a saída tem `id`, mas a entrada não, porque o id só existe depois de
+  o time ser criado).
+- O método `de_participante` recebe o **model** e devolve o **response**. Monte o response sempre por
+  ele (igual o router faz com `EventoResponse.de_evento`), para não esquecer nenhum campo.
 - Os nomes dos campos aqui (`id`, `nome`, `escudo_url`, `esporte`, `ativo`) **têm que ser idênticos**
   aos da interface TypeScript no Passo 8. Se um lado mudar, o outro tem que mudar junto.
 
@@ -481,14 +653,16 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/routes/admin_times_routes.py`
 **Tipo:** ARQUIVO NOVO
 
-Aqui ficam os **endpoints HTTP**. Vamos exportar **dois routers**:
+Aqui ficam os **endpoints** (os endereços da API). Vamos criar **dois routers** — um router é só um
+grupo de endpoints que combinam entre si:
 
-- `admin_router` (prefixo `/admin/times`): CRUD protegido por perfil **Administrador**.
-- `router` (prefixo `/times`): um **GET público** de listagem que o `<select>` do formulário vai
-  consumir.
+- `admin_router` (começa com `/admin/times`): o CRUD, protegido para que só o perfil **Administrador**
+  acesse.
+- `router` (começa com `/times`): um endereço **público** de listagem (um `GET`) que as caixas de
+  seleção do formulário vão usar para pegar os times.
 
-Use como molde o `routes/admin_usuarios_routes.py` (CRUD admin) e o `routes/evento_routes.py`
-(que também tem um router público + um admin no mesmo arquivo).
+Use como molde o `routes/admin_usuarios_routes.py` (que tem um CRUD de admin) e o
+`routes/evento_routes.py` (que também junta um router público e um de admin no mesmo arquivo).
 
 ```python
 # =============================================================================
@@ -651,27 +825,33 @@ async def excluir(
     return Response(status_code=status.HTTP_204_NO_CONTENT)
 ```
 
-Pontos importantes (leia com atenção, é a parte mais densa):
+Pontos importantes (leia com calma, é a parte mais cheia de detalhes):
 
-- **O prefixo NÃO inclui `/api`.** O `main.py` adiciona `/api` na frente automaticamente. Então
+- **O prefixo NÃO inclui `/api`.** O `main.py` coloca o `/api` na frente sozinho. Então
   `prefix="/admin/times"` vira `/api/admin/times` na prática.
-- **`@requer_autenticacao([Perfil.ADMIN.value])`** fica **abaixo** do decorator de rota
-  (`@admin_router.post(...)`). Sem ele, qualquer um acessaria. Com a lista, só Administrador entra.
-  Não autenticado → 401; perfil errado → 403.
-- Por causa do decorator, a assinatura **sempre** declara
-  `usuario_logado: Optional[UsuarioLogado] = None` e logo no início faz `assert usuario_logado is not None`.
-  O `usuario_logado` é **dataclass**, nunca dict.
-- **O primeiro parâmetro é sempre `request: Request`.** Path params (`id: int`) vêm depois.
-- A rota **pública** `listar_times` (no `router`, prefixo `/times`) **não tem** o decorator de auth —
-  é o endpoint que o `<select>` vai chamar. Ela retorna **só os ativos**.
-- Use `Perfil.ADMIN.value` (de `util/perfis.py`), **nunca** a string `"Administrador"` solta.
-- Para erros, levante `HTTPException(status_code=..., detail="...")`. Os handlers globais já
-  formatam a resposta no contrato `{detail, type, errors}`.
-- O `DELETE` devolve `204 No Content` (sem corpo), via `Response(status_code=...)`.
+- **`@requer_autenticacao([Perfil.ADMIN.value])`** fica **logo abaixo** da linha que define a rota
+  (`@admin_router.post(...)`). Sem ele, qualquer pessoa poderia acessar. Com a lista de perfis, só
+  Administrador entra. Quem não está logado recebe 401; quem está logado mas não é admin recebe 403.
+- Por causa desse decorator, a função **sempre** declara
+  `usuario_logado: Optional[UsuarioLogado] = None` e logo no começo faz `assert usuario_logado is not None`
+  (uma checagem que garante que o usuário realmente chegou). O `usuario_logado` é uma **dataclass**,
+  nunca um dicionário.
+- **O primeiro parâmetro é sempre `request: Request`.** Os valores que vêm pela URL (como `id: int`)
+  vêm depois.
+- O endereço **público** `listar_times` (no `router`, começando com `/times`) **não tem** o decorator
+  de autenticação — é justamente o que as caixas de seleção vão chamar. Ele devolve **só os times
+  ativos**.
+- Use `Perfil.ADMIN.value` (de `util/perfis.py`), **nunca** a palavra `"Administrador"` digitada solta
+  (assim, se o nome mudar, muda num lugar só).
+- Para erros, dispare `HTTPException(status_code=..., detail="...")`. O projeto já cuida de formatar a
+  resposta de erro no padrão `{detail, type, errors}`.
+- O `DELETE` devolve `204 No Content` (uma resposta de sucesso sem nenhum conteúdo no corpo), via
+  `Response(status_code=...)`.
 
-> Observação: o módulo de evento usa `DynamicRateLimiter` em algumas rotas. Aqui, para manter o
-> tutorial focado, **não** aplicamos rate limit. Se quiser seguir 100% o padrão do `admin_usuarios`,
-> você pode adicionar um limiter depois — mas é opcional e não é exigido por esta feature.
+> Observação: o módulo de evento usa um limitador de requisições (`DynamicRateLimiter`) em algumas
+> rotas — ele evita que alguém faça pedidos demais em pouco tempo. Aqui, para o tutorial não ficar
+> pesado, **não** vamos aplicar esse limitador. Se quiser seguir 100% o padrão do `admin_usuarios`,
+> dá para adicionar depois — mas é opcional e esta feature não exige.
 
 ---
 
@@ -680,9 +860,10 @@ Pontos importantes (leia com atenção, é a parte mais densa):
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/backend/main.py`
 **Tipo:** EDIÇÃO
 
-Este é **o passo que mais gente erra**. Se você não fizer isto, a tabela nunca é criada (erro "no
-such table: participante") e os endpoints retornam 404 (router não registrado). São **3 edições**
-neste arquivo.
+Este é **o passo que mais gente esquece**. Se você não fizer isto, a tabela nunca é criada (e aparece
+o erro "no such table: participante") e os endpoints respondem 404 (porque o router não foi avisado de
+que existe). São **3 edições** neste arquivo. Por que registrar? O `main.py` é o "ponto de partida" do
+backend: o que não estiver listado lá, o programa nem sabe que existe.
 
 ### 7.1 — Importar o repo novo
 
@@ -733,10 +914,9 @@ TABELAS = [
 ]
 ```
 
-> Por que a posição importa? A lista respeita **dependências de chave estrangeira (FK)**. Tabelas
-> referenciadas têm que ser criadas antes das que as referenciam. Como `participante` **não tem FK
-> com ninguém**, pode ir em quase qualquer lugar; colocamos antes de `configuracao` só por
-> organização.
+> Por que a posição importa? A lista respeita as **chaves estrangeiras (FK)** — quando uma tabela
+> aponta para outra, a tabela apontada precisa nascer primeiro. Como `participante` **não aponta para
+> ninguém**, ela pode ir em quase qualquer lugar; colocamos antes de `configuracao` só por organização.
 
 ### 7.4 — Registrar os routers na lista `ROUTERS`
 
@@ -777,8 +957,9 @@ seções **Times** e **Admin - Times** com os endpoints novos. Se aparecerem, o 
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend/src/lib/types.ts`
 **Tipo:** EDIÇÃO
 
-Os tipos do front **espelham exatamente** os Response DTOs do backend. Adicione a interface
-`Participante` no final do arquivo (depois de `UsuarioAdmin`):
+Os tipos do frontend têm que ser **idênticos** aos Response DTOs do backend — é assim que o
+TypeScript sabe o formato dos dados que chegam. Adicione a interface `Participante` no final do
+arquivo (depois de `UsuarioAdmin`):
 
 ```typescript
 // ===== Times / Participantes =====
@@ -805,8 +986,9 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend/src/lib/schemas.ts`
 **Tipo:** EDIÇÃO
 
-O schema Zod valida o **formulário** antes de mandar para a API, espelhando o DTO de entrada do
-Passo 4. Adicione no final do arquivo:
+O schema Zod confere o **formulário** ainda no navegador, antes de mandar qualquer coisa para a API.
+Ele copia as mesmas regras do DTO de entrada do Passo 4 — assim o usuário vê o erro na hora, sem
+precisar esperar a resposta do servidor. Adicione no final do arquivo:
 
 ```typescript
 // ===== Admin: times / participantes =====
@@ -839,8 +1021,9 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend/src/lib/api.ts`
 **Tipo:** EDIÇÃO
 
-Toda chamada à API passa pelo cliente central `api` (que já cuida de cookie de sessão e do header
-CSRF). Você só precisa criar um objeto `participantesApi` com as funções do módulo. São **2 edições**.
+Toda chamada à API passa por um objeto central chamado `api` (ele já cuida sozinho do cookie de login
+e da proteção contra CSRF — um tipo de ataque em que um site malicioso faz pedidos no seu nome). Você
+só precisa criar um objeto `participantesApi` com as funções deste módulo. São **2 edições**.
 
 ### 10.1 — Importar o tipo `Participante`
 
@@ -900,12 +1083,13 @@ export const participantesApi = {
 
 Pontos importantes:
 
-- **Os caminhos são relativos a `/api`** — o cliente adiciona o prefixo sozinho. Por isso é
-  `/times`, não `/api/times`.
-- `api.get<Participante[]>('/times')` — o `<Participante[]>` diz ao TypeScript o **tipo do retorno**.
-  Como o backend retorna uma lista pura (não paginada), o tipo é um array, não `PaginaResponse<...>`.
-- `api.post`/`api.put` enviam o corpo JSON; o CSRF é automático. `api.delete<void>` porque o backend
-  responde `204` sem corpo.
+- **Os caminhos já contam a partir de `/api`** — o cliente coloca o `/api` sozinho. Por isso você
+  escreve `/times`, e não `/api/times`.
+- `api.get<Participante[]>('/times')` — o `<Participante[]>` avisa ao TypeScript qual é o **tipo do
+  que volta**. Como o backend devolve uma lista simples (sem paginação), o tipo é um array, e não
+  `PaginaResponse<...>`.
+- `api.post`/`api.put` mandam o corpo em JSON, com a proteção CSRF automática. Usamos
+  `api.delete<void>` porque o backend responde `204` sem nenhum conteúdo.
 
 ---
 
@@ -914,9 +1098,16 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend/src/pages/admin/AdminTimesPage.tsx`
 **Tipo:** ARQUIVO NOVO
 
-Esta é a tela de gerenciamento de times. Ela segue a estrutura do `AdminEventosPage.tsx`: lê dados
-com `useFetch`, valida o formulário com Zod, e dá feedback via `toast` (NUNCA `alert`/`confirm`
-nativos — sempre `toast` ou `pedirConfirmacao` do uiStore). O estilo é **inline** (sem framework CSS).
+Esta é a tela onde o admin gerencia os times. Ela segue a mesma estrutura do `AdminEventosPage.tsx`:
+busca os dados com `useFetch`, confere o formulário com Zod e avisa o usuário com `toast` (aquelas
+mensagens que aparecem e somem). Nunca use os `alert`/`confirm` do navegador — sempre `toast` ou
+`pedirConfirmacao` do uiStore. O estilo aqui é **inline** (escrito direto no elemento, sem framework
+de CSS).
+
+Quando estiver pronta, a tela vai ficar assim — com a lista de times à esquerda (mostrando o escudo) e
+o formulário de cadastro à direita:
+
+![Tela "Gerenciar times" com o time Santos cadastrado e o escudo ao lado do nome](img/aluno1/crud-times-santos-escudo.png)
 
 ```tsx
 // Gerenciar times/participantes (rota /admin/times).
@@ -1081,15 +1272,22 @@ export default function AdminTimesPage() {
 Pontos importantes:
 
 - **Default export** com o **mesmo nome do arquivo** (`AdminTimesPage`). É o padrão do projeto.
-- **`useFetch`** devolve `{ data, carregando, erro, recarregar }`. Renderize os estados
-  `carregando` / `erro` / vazio **antes** de iterar `data`.
-- **`escudoDeTime(nome)`** (de `lib/imagens.ts`) tenta achar o escudo a partir do nome do time
-  (ex.: "Santos" → `/static/img/seed/escudo_santos.png`). Retorna `null` quando não há escudo
-  correspondente — por isso o `&&` antes do `<img>`.
-- **Feedback sempre via `toast`** e confirmação via **`pedirConfirmacao`** (do `store/uiStore`).
-  **Nunca** use `alert()`, `confirm()` ou `prompt()` nativos — está proibido no projeto.
-- O `try/catch/finally` no `submit`: valida com `safeParse`, no sucesso chama a API e
-  `recarregar()`, no erro mostra `toast.erro`. É o mesmo fluxo do `AdminEventosPage`.
+- **`useFetch`** devolve `{ data, carregando, erro, recarregar }`. Mostre os estados de
+  `carregando`, de `erro` e de lista vazia **antes** de percorrer o `data` — senão a tela pode quebrar
+  enquanto os dados ainda não chegaram.
+- **`escudoDeTime(nome)`** (de `lib/imagens.ts`) tenta descobrir o escudo a partir do nome do time
+  (ex.: "Santos" → `/static/img/seed/escudo_santos.png`). Devolve `null` quando não acha um escudo —
+  por isso o `&&` antes do `<img>` (só mostra a imagem se ela existir).
+- **Sempre avise com `toast`** e peça confirmação com **`pedirConfirmacao`** (do `store/uiStore`).
+  **Nunca** use `alert()`, `confirm()` ou `prompt()` do navegador — é proibido no projeto.
+- O `try/catch/finally` do `submit`: confere os dados com `safeParse`; se passou, chama a API e
+  `recarregar()`; se deu erro, mostra `toast.erro`. É o mesmo fluxo do `AdminEventosPage`.
+
+Ao clicar em **Editar**, o formulário muda para o modo de edição (título "Editar time", botão
+"Salvar alterações" e um "Cancelar edição"). Com mais times cadastrados, a lista fica assim — repare
+no Coritiba marcado como inativo ("Não"), que aparece para o admin mas não vai aparecer no select:
+
+![Tela de times no modo de edição, com Coritiba, Santos e Vasco na lista e o formulário "Editar time"](img/aluno1/form-editar-time-checkbox.png)
 
 ---
 
@@ -1098,8 +1296,9 @@ Pontos importantes:
 **Arquivo:** `/Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend/src/pages/admin/AdminEventosPage.tsx`
 **Tipo:** EDIÇÃO
 
-Agora vamos substituir os dois `<input>` de "Mandante" e "Visitante" por dois `<select>` que listam
-os times cadastrados. São **4 pequenas edições** neste arquivo.
+Agora vamos trocar os dois campos de digitar ("Mandante" e "Visitante") por duas caixas de seleção
+que listam os times cadastrados — assim o admin escolhe da lista em vez de digitar e errar o nome. São
+**4 pequenas edições** neste arquivo.
 
 ### 12.1 — Importar o que falta
 
@@ -1180,17 +1379,23 @@ Substitua-o por este (note os dois `<select>` e a prévia do escudo):
             </div>
 ```
 
+Depois da troca, o formulário de evento passa a ter duas caixas de seleção, e o escudo do time escolhido
+aparece ao lado. Veja "Santos" e "Vasco" já selecionados, cada um com seu escudo:
+
+![Formulário "Cadastrar evento" com selects de Mandante (Santos) e Visitante (Vasco), cada um mostrando o escudo](img/aluno1/evento-selects-times-escudo.png)
+
 Pontos importantes:
 
-- O **valor** de cada `<option>` é o **nome do time** (`t.nome`). O backend de evento (`CriarEventoDTO`)
-  espera `mandante`/`visitante` como **texto** (o nome). Mantendo o `value` como nome, **nada muda no
-  backend** — o contrato continua o mesmo. Você só trocou a forma de o admin digitar.
-- `<option value="">Selecione…</option>` é a opção vazia inicial. Se o admin não escolher, o
-  `criarEventoSchema` já reclama (`Informe o mandante`), porque o valor fica `''`.
-- `escudoDeTime(form.mandante)` mostra o escudo do time selecionado ao lado do select. Retorna `null`
-  quando não há escudo; por isso o `? ... : null`.
-- O resto da página (`submit`, `criarEventoSchema`, etc.) **não muda**: o `form.mandante` continua
-  sendo uma string, só que agora preenchida pelo select em vez do input.
+- O **valor** de cada opção é o **nome do time** (`t.nome`). O backend de evento (`CriarEventoDTO`)
+  espera `mandante`/`visitante` como **texto** (o nome). Como o valor continua sendo o nome, **nada
+  muda no backend** — ele recebe exatamente o que recebia antes. Você só trocou o jeito de o admin
+  preencher.
+- `<option value="">Selecione…</option>` é a opção vazia que aparece primeiro. Se o admin não escolher
+  nada, o `criarEventoSchema` reclama (`Informe o mandante`), porque o valor fica vazio (`''`).
+- `escudoDeTime(form.mandante)` mostra o escudo do time escolhido ao lado da caixa de seleção. Devolve
+  `null` quando não tem escudo; por isso o `? ... : null` (só mostra se existir).
+- O resto da página (`submit`, `criarEventoSchema`, etc.) **não muda em nada**: o `form.mandante`
+  continua sendo um texto, só que agora preenchido pela caixa de seleção em vez do campo de digitar.
 
 ### 12.4 — Conferir o `useCallback`
 
@@ -1277,7 +1482,10 @@ Adicione o link de Times logo após "Eventos":
 ```
 
 Pronto! O link "Times" só aparece para quem está logado como administrador, porque está dentro do
-bloco `role === Perfil.ADMIN`.
+bloco `role === Perfil.ADMIN`. No final, o menu do topo fica com o item **Times** entre "Eventos" e
+"Odds":
+
+![Menu do admin no topo da página, com o novo item "Times" entre "Eventos" e "Odds"](img/aluno1/menu-admin-times.png)
 
 ---
 
@@ -1296,7 +1504,7 @@ bloco `role === Perfil.ADMIN`.
 2. **Suba o frontend** (Terminal 2):
    ```bash
    cd /Volumes/Externo/Ifes/2026.1/PI20261/Projetos/lancebet/frontend
-   npm run dev
+   bun run dev
    ```
 
 3. Abra `http://localhost:5183`, clique em **Entrar** e logue como admin
@@ -1312,8 +1520,11 @@ bloco `role === Perfil.ADMIN`.
    time (botão Excluir) — deve aparecer o **modal de confirmação** (não um `confirm` nativo).
 
 7. Vá em **Eventos** (`/admin/eventos`). No formulário "Cadastrar evento", os campos Mandante e
-   Visitante agora são **selects**. Escolha "Santos" e "Vasco" — o escudo aparece ao lado. Preencha as
-   odds e clique **Criar evento**. Deve criar normalmente (toast verde, evento na lista).
+   Visitante agora são **caixas de seleção**. Escolha "Santos" e "Vasco" — o escudo aparece ao lado.
+   Preencha as odds e clique **Criar evento**. Deve criar normalmente (toast verde, e o evento aparece
+   no topo da lista):
+
+   ![Página de eventos após criar um evento Santos x Vasco usando os selects; o novo evento aparece no topo da lista](img/aluno1/evento-criado-com-selects.png)
 
 ### Teste rápido pela documentação da API
 
@@ -1327,7 +1538,7 @@ então o teste mais confiável do CRUD é pela tela).
 Na pasta `frontend`, rode:
 
 ```bash
-npx tsc -b --noEmit
+bunx tsc -b --noEmit
 ```
 
 Se passar sem erros, os tipos do front estão consistentes. Se quiser rodar os testes do backend:
@@ -1396,6 +1607,6 @@ Marque cada caixa conforme conclui:
 - [ ] **Rota** — registrei `/admin/times` dentro de `RotaAdmin` em `router.tsx`.
 - [ ] **Menu** — adicionei o `NavLink` "Times" no bloco admin do `Header.tsx`.
 - [ ] **Teste** — subi backend + frontend, cadastrei times e criei um evento usando os selects.
-- [ ] **Typecheck** — rodei `npx tsc -b --noEmit` na pasta `frontend` sem erros.
+- [ ] **Typecheck** — rodei `bunx tsc -b --noEmit` na pasta `frontend` sem erros.
 
 Parabéns! Se todas as caixas estão marcadas, sua feature está completa e funcionando ponta a ponta. 🎉
