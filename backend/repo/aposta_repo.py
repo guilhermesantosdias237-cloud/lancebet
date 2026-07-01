@@ -31,6 +31,7 @@ from sql.aposta_sql import (
     OBTER_ABERTAS_POR_EVENTO,
     OBTER_RECENTES,
     ATUALIZAR_LIQUIDACAO,
+    ATUALIZAR_STATUS,
     SOMA_VOLUME_APOSTADO,
     CONTAR_PENDENTES,
     CONTAR_POR_EVENTO,
@@ -62,6 +63,8 @@ class OpcaoIndisponivelError(ApostaError):
 class EventoIndisponivelError(ApostaError):
     pass
 
+class CancelamentoInvalidoError(ApostaError):
+    """A aposta não pode ser cancelada (status/evento não permitem)."""
 
 # ---------------------------------------------------------------------------
 # Conversão de linhas
@@ -187,98 +190,80 @@ def _inserir_movimentacao(
 # Criar aposta (transação atômica)
 # ---------------------------------------------------------------------------
 
-def criar_aposta(
-    usuario_id: int,
-    opcao_aposta_id: int,
-    valor_apostado: float,
-) -> tuple[Aposta, float]:
-    """Cria uma aposta em transação atômica.
+# ---------------------------------------------------------------------------
+# Cancelar aposta (transação atômica)
+# ---------------------------------------------------------------------------
 
-    Valida: opção ATIVA, evento ABERTO, valor > 0 e <= saldo. Debita a carteira,
-    registra movimentação 'Aposta' (valor negativo) e insere a aposta com a odd
-    como snapshot (``odd_registrada``).
+def cancelar_aposta(aposta_id: int, usuario_id: int) -> tuple[Aposta, float]:
+    """Cancela uma aposta ABERTA de um evento ABERTO e estorna o valor.
+
+    Em transação atômica: valida que a aposta é do usuário, está 'Aberta' e que
+    o evento ainda está 'Aberto'; credita o valor de volta na carteira; registra
+        a movimentação 'Estorno' (valor positivo); muda o status para 'Cancelada'.
 
     Returns:
-        (aposta_criada, saldo_apos)
+        (aposta_cancelada, saldo_apos)
 
     Raises:
-        OpcaoIndisponivelError, EventoIndisponivelError, SaldoInsuficienteError,
-        ApostaError
+        CancelamentoInvalidoError, ApostaError
     """
-    if valor_apostado is None or valor_apostado <= 0:
-        raise ApostaError("O valor da aposta deve ser maior que zero.")
-
     momento = agora()
     conn = _abrir_conexao_imediata()
     try:
-        # Opção + evento (com odd e status atuais)
+        # Carrega a aposta + o status do evento (via opção)
         cur = conn.execute(
             """
-            SELECT o.id          AS opcao_id,
-                   o.descricao   AS opcao_desc,
-                   o.odd         AS odd,
-                   o.status      AS opcao_status,
-                   e.id          AS evento_id,
-                   e.titulo      AS evento_titulo,
-                   e.status      AS evento_status
-            FROM opcao_aposta o
-            INNER JOIN evento_esportivo e ON o.evento_id = e.id
-            WHERE o.id = ?
+            SELECT a.id            AS aposta_id,
+                   a.usuario_id    AS usuario_id,
+                   a.valor_apostado AS valor_apostado,
+                   a.status        AS aposta_status,
+                   a.titulo        AS titulo_evento,
+                   e.status        AS evento_status
+            FROM aposta a
+            LEFT JOIN opcao_aposta o ON a.opcao_aposta_id = o.id
+            LEFT JOIN evento_esportivo e ON o.evento_id = e.id
+            WHERE a.id = ?
             """,
-            (opcao_aposta_id,),
+            (aposta_id,),
         )
-        opc = cur.fetchone()
-        if opc is None:
-            raise OpcaoIndisponivelError("Opção de aposta não encontrada.")
-        if opc["opcao_status"] != "Ativa":
-            raise OpcaoIndisponivelError("Esta opção de aposta não está disponível.")
-        if opc["evento_status"] != "Aberto":
-            raise EventoIndisponivelError(
-                "As apostas para este evento estão encerradas."
+        ap = cur.fetchone()
+        if ap is None:
+            raise ApostaError("Aposta não encontrada.")
+        if ap["usuario_id"] != usuario_id:
+            raise CancelamentoInvalidoError("Esta aposta não pertence a você.")
+        if ap["aposta_status"] != StatusAposta.ABERTA.value:
+            raise CancelamentoInvalidoError("Só é possível cancelar apostas em aberto.")
+        if ap["evento_status"] != "Aberto":
+            raise CancelamentoInvalidoError(
+                "Não é possível cancelar: o evento não está mais aberto."
             )
 
         carteira = _carteira_do_usuario(conn, usuario_id)
         if carteira is None:
             raise ApostaError("Carteira do usuário não encontrada.")
 
-        saldo_atual = float(carteira["saldo_ficticio"])
-        if valor_apostado > saldo_atual:
-            raise SaldoInsuficienteError("Saldo fictício insuficiente para esta aposta.")
+        valor = float(ap["valor_apostado"])
+        saldo_apos = round(float(carteira["saldo_ficticio"]) + valor, 2)
 
-        odd = float(opc["odd"])
-        retorno_potencial = round(valor_apostado * odd, 2)
-        saldo_apos = round(saldo_atual - valor_apostado, 2)
-
+        # Credita de volta na carteira
         _ajustar_saldo(conn, carteira["id"], saldo_apos, momento)
 
-        cur = conn.execute(
-            INSERIR,
-            (
-                usuario_id,
-                opcao_aposta_id,
-                opc["evento_id"],
-                opc["evento_titulo"],
-                opc["opcao_desc"],
-                round(valor_apostado, 2),
-                odd,
-                retorno_potencial,
-                StatusAposta.ABERTA.value,
-                ResultadoAposta.PENDENTE.value,
-                momento,
-            ),
-        )
-        aposta_id = cur.lastrowid
-
+        # Registra a movimentação de estorno (crédito, valor positivo)
         _inserir_movimentacao(
             conn,
             carteira_id=carteira["id"],
             aposta_id=aposta_id,
-            tipo="Aposta",
-            valor=-round(valor_apostado, 2),
+            tipo="Estorno",
+            valor=valor,
             saldo_apos=saldo_apos,
-            descricao=f"Aposta em {opc['evento_titulo']} — {opc['opcao_desc']}",
+            descricao=f"Estorno de aposta cancelada — {ap['titulo_evento']}"
+            if ap["titulo_evento"]
+            else "Estorno de aposta cancelada",
             momento=momento,
         )
+
+        # Muda o status da aposta para Cancelada
+        conn.execute(ATUALIZAR_STATUS, (StatusAposta.CANCELADA.value, aposta_id))
 
         conn.execute("COMMIT")
     except Exception:
@@ -289,7 +274,7 @@ def criar_aposta(
 
     aposta = obter_por_id(aposta_id)
     if aposta is None:
-        raise ApostaError("Falha ao registrar a aposta.")
+        raise ApostaError("Falha ao cancelar a aposta.")
     return aposta, saldo_apos
 
 

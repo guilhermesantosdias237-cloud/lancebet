@@ -21,6 +21,12 @@ from fastapi import APIRouter, Request
 # Schemas (saída)
 from dtos.responses.carteira_response import CarteiraResponse, MovimentacaoResponse
 from dtos.responses.comum import PaginaResponse
+from dtos.responses.carteira_response import (
+    CarteiraResponse,
+    MovimentacaoResponse,
+    RankingItemResponse,
+)
+from dtos.responses.comum import PaginaResponse
 
 # Models
 from model.carteira_model import Carteira
@@ -33,6 +39,9 @@ from repo import carteira_repo
 from util.api_helpers import checar_rate_limit
 from util.auth_decorator import requer_autenticacao
 from util.rate_limiter import DynamicRateLimiter
+
+
+
 
 # =============================================================================
 # Configuração do Router
@@ -107,3 +116,23 @@ async def listar_extrato(
         paginacao,
         [MovimentacaoResponse.de_movimentacao(m) for m in paginacao.items],
     )
+
+# =============================================================================
+# Ranking de apostadores
+# =============================================================================
+
+@router.get("/ranking", response_model=list[RankingItemResponse])
+@requer_autenticacao()
+async def listar_ranking(
+    request: Request,
+    limite: int = 50,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Retorna o ranking de apostadores (top N por total ganho)."""
+    assert usuario_logado is not None
+
+    if limite <= 0 or limite > 200:
+        limite = 50
+
+    itens = carteira_repo.ranking(limite)
+    return [RankingItemResponse.de_dict(i) for i in itens]

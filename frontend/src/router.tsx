@@ -21,6 +21,7 @@ import EventoDetalhePage from './pages/apostador/EventoDetalhePage'
 import ApostaConfirmadaPage from './pages/apostador/ApostaConfirmadaPage'
 import MinhasApostasPage from './pages/apostador/MinhasApostasPage'
 import CarteiraPage from './pages/apostador/CarteiraPage'
+import RankingPage from './pages/apostador/RankingPage'
 
 // ===== Admin =====
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
@@ -71,6 +72,7 @@ export const router = createBrowserRouter([
               { path: '/aposta-confirmada', element: <ApostaConfirmadaPage /> },
               { path: '/minhas-apostas', element: <MinhasApostasPage /> },
               { path: '/carteira', element: <CarteiraPage /> },
+              { path: '/ranking', element: <RankingPage /> },
             ],
           },
 

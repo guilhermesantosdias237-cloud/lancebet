@@ -25,6 +25,7 @@ export type StatusOpcaoValor = (typeof StatusOpcao)[keyof typeof StatusOpcao]
 export const StatusAposta = {
   ABERTA: 'Aberta',
   LIQUIDADA: 'Liquidada',
+  CANCELADA: 'Cancelada',
 } as const
 export type StatusApostaValor = (typeof StatusAposta)[keyof typeof StatusAposta]
 
@@ -39,6 +40,7 @@ export const TipoMovimentacao = {
   CREDITO_INICIAL: 'Credito Inicial',
   APOSTA: 'Aposta',
   GANHO: 'Ganho',
+  ESTORNO: 'Estorno',
 } as const
 export type TipoMovimentacaoValor = (typeof TipoMovimentacao)[keyof typeof TipoMovimentacao]
 
@@ -139,6 +141,14 @@ export interface MovimentacaoFinanceira {
   saldo_apos: number
   descricao: string
   criado_em?: string | null
+}
+export interface RankingItem {
+  posicao: number
+  usuario_id: number
+  nome_usuario: string
+  total_apostado: number
+  total_ganho: number
+  lucro: number
 }
 export interface AdminDashboard {
   eventos_ativos: number

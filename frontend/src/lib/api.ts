@@ -179,6 +179,7 @@ import type {
   UsuarioAdmin,
   PaginaResponse,
   MensagemResponse,
+  RankingItem,
 } from './types'
 import type {
   CadastroApostadorForm,
@@ -216,6 +217,7 @@ export const apostasApi = {
   minhas: (params: ListaParams = {}) =>
     api.get<PaginaResponse<Aposta>>('/apostas/minhas', { params }),
   criar: (dados: CriarApostaForm) => api.post<ApostaComSaldo>('/apostas', dados),
+  cancelar: (id: number) => api.post<ApostaComSaldo>(`/apostas/${id}/cancelar`),
 }
 
 /** Carteira fictícia. */
@@ -223,8 +225,12 @@ export const carteiraApi = {
   obter: () => api.get<Carteira>('/carteira'),
   extrato: (params: { pagina?: number; por_pagina?: number } = {}) =>
     api.get<PaginaResponse<MovimentacaoFinanceira>>('/carteira/extrato', { params }),
+  ranking: (limite: number = 50) => api.get<RankingItem[]>('/carteira/ranking', { params: { limite } }),
 }
-
+/** Ranking de apostadores. */
+export const rankingApi = {
+  listar: (limite = 50) => api.get<RankingItem[]>('/carteira/ranking', { params: { limite } }),
+}
 /** Administração do LanceBet. */
 export const adminApi = {
   dashboard: () => api.get<AdminDashboard>('/admin/dashboard'),

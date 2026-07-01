@@ -68,3 +68,25 @@ class MovimentacaoResponse(BaseModel):
             descricao=movimentacao.descricao,
             criado_em=movimentacao.criado_em,
         )
+
+class RankingItemResponse(BaseModel):
+    """Uma linha do ranking de apostadores (espelha RankingItem no frontend)."""
+
+    posicao: int = Field(..., description="Posição no ranking (1 = primeiro)")
+    usuario_id: int
+    nome_usuario: str
+    total_apostado: float = Field(..., description="Total apostado pelo usuário")
+    total_ganho: float = Field(..., description="Total ganho pelo usuário")
+    lucro: float = Field(..., description="total_ganho - total_apostado")
+
+    @classmethod
+    def de_dict(cls, item: dict) -> "RankingItemResponse":
+        """Constrói o response a partir do dict retornado por carteira_repo.ranking()."""
+        return cls(
+            posicao=item["posicao"],
+            usuario_id=item["usuario_id"],
+            nome_usuario=item["nome_usuario"],
+            total_apostado=item["total_apostado"],
+            total_ganho=item["total_ganho"],
+            lucro=item["lucro"],
+        )

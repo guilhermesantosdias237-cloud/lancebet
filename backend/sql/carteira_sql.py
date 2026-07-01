@@ -95,3 +95,18 @@ FROM movimentacao_financeira
 WHERE carteira_id = ?
 ORDER BY criado_em DESC, id DESC
 """
+
+RANKING = """
+SELECT
+    u.id   AS usuario_id,
+    u.nome AS nome_usuario,
+    COALESCE(SUM(CASE WHEN m.tipo = 'Aposta' THEN -m.valor ELSE 0 END), 0.0) AS total_apostado,
+    COALESCE(SUM(CASE WHEN m.tipo = 'Ganho'  THEN  m.valor ELSE 0 END), 0.0) AS total_ganho
+FROM usuario u
+INNER JOIN carteira c ON c.usuario_id = u.id
+LEFT JOIN movimentacao_financeira m ON m.carteira_id = c.id
+WHERE u.perfil = 'Apostador'
+GROUP BY u.id, u.nome
+ORDER BY total_ganho DESC, total_apostado ASC
+LIMIT ?
+"""

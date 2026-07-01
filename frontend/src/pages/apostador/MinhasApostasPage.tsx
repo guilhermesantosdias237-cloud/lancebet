@@ -3,14 +3,14 @@
 // com filtro de status (Aberta/Liquidada) e paginação.
 import { useState } from 'react'
 import { useFetch } from '../../hooks/useFetch'
-import { apostasApi } from '../../lib/api'
+import { apostasApi, ApiError } from '../../lib/api'
 import { StatusAposta } from '../../lib/types'
 import { fmt, ofmt, proto, formatarDataHora } from '../../lib/format'
-import { Badge, filterStyle, apostaBadgeLabel, apostaBadgeStyle } from '../../components/lancebet/ui'
+import { Badge, Button, filterStyle, apostaBadgeLabel, apostaBadgeStyle } from '../../components/lancebet/ui'
+import { toast, useUIStore } from '../../store/uiStore'
 import Spinner from '../../components/ui/Spinner'
 import Pagination from '../../components/ui/Pagination'
 import iconBlack from '../../assets/icon_black.svg'
-
 const filtros: [string, string][] = [
   ['', 'Todas'],
   [StatusAposta.ABERTA, 'Em aberto'],
@@ -23,11 +23,30 @@ export default function MinhasApostasPage() {
   const [filtro, setFiltro] = useState('')
   const [pagina, setPagina] = useState(1)
 
-  const { data, carregando } = useFetch(
-    () => apostasApi.minhas({ status: filtro || undefined, pagina, por_pagina: 10 }),
-    [filtro, pagina],
-  )
+ const pedirConfirmacao = useUIStore((s) => s.pedirConfirmacao)
 
+const { data, carregando, recarregar } = useFetch(
+  () => apostasApi.minhas({ status: filtro || undefined, pagina, por_pagina: 10 }),
+  [filtro, pagina],
+)
+  const cancelar = (apostaId: number) => {
+  pedirConfirmacao({
+    titulo: 'Cancelar aposta',
+    mensagem: 'Tem certeza que deseja cancelar esta aposta?',
+    detalhes: 'O valor apostado será estornado para a sua carteira.',
+    textoConfirmar: 'Cancelar aposta',
+    tipo: 'danger',
+    onConfirmar: async () => {
+      try {
+        await apostasApi.cancelar(apostaId)
+        toast.sucesso('Aposta cancelada e valor estornado.')
+        recarregar()
+      } catch (e) {
+        toast.erro(e instanceof ApiError ? e.message : 'Falha ao cancelar a aposta.')
+      }
+    },
+  })
+}
   const list = data?.items ?? []
 
   return (
@@ -43,6 +62,18 @@ export default function MinhasApostasPage() {
             }}
             style={{ padding: '10px 18px', fontWeight: 800, fontSize: 12, letterSpacing: '.05em', textTransform: 'uppercase', cursor: 'pointer', ...filterStyle(filtro === key) }}
           >
+            <div style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+            <Badge style={{ padding: '6px 12px', ...apostaBadgeStyle(b) }}>{apostaBadgeLabel(b)}</Badge>
+          {b.status === StatusAposta.ABERTA && (
+          <Button
+            variant="outline"
+            onClick={() => cancelar(b.id)}
+          style={{ padding: '6px 12px', fontSize: 11, letterSpacing: '.05em', textTransform: 'uppercase' }}
+    >
+      Cancelar
+    </Button>
+  )}
+</div>
             {lbl}
           </button>
         ))}

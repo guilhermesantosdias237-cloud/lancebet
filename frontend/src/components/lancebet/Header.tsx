@@ -81,6 +81,7 @@ export default function Header() {
               <NavLink to="/minhas-apostas">Minhas apostas</NavLink>
               <NavLink to="/carteira">Carteira</NavLink>
               <NavLink to="/regras">Regras</NavLink>
+              <NavLink to="/ranking">Ranking</NavLink>
             </nav>
             <div style={{ marginLeft: 'auto', display: 'flex', gap: 14, alignItems: 'center' }}>
               <div onClick={() => navigate('/carteira')} style={{ background: '#fff', color: '#000', padding: '7px 15px', cursor: 'pointer', display: 'flex', flexDirection: 'column', lineHeight: 1, gap: 3 }}>

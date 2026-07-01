@@ -38,8 +38,8 @@ from repo.aposta_repo import (
     SaldoInsuficienteError,
     OpcaoIndisponivelError,
     EventoIndisponivelError,
+    CancelamentoInvalidoError,
 )
-
 from util.api_helpers import checar_rate_limit
 from util.auth_decorator import requer_autenticacao
 from util.logger_config import logger
@@ -109,6 +109,35 @@ async def criar(
     )
     return ApostaComSaldoResponse.de_aposta_com_saldo(aposta, saldo_apos)
 
+# =============================================================================
+# Apostador: cancelar aposta (com estorno)
+# =============================================================================
+
+@router.post("/{id}/cancelar", response_model=ApostaComSaldoResponse)
+@requer_autenticacao([Perfil.APOSTADOR.value])
+async def cancelar(
+    request: Request,
+    id: int,
+    usuario_logado: Optional[UsuarioLogado] = None,
+):
+    """Cancela uma aposta aberta do apostador logado e estorna o valor."""
+    assert usuario_logado is not None
+
+    try:
+        aposta, saldo_apos = aposta_repo.cancelar_aposta(
+            aposta_id=id,
+            usuario_id=usuario_logado.id,
+        )
+    except CancelamentoInvalidoError as e:
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e))
+    except ApostaError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    logger.info(
+        f"Aposta #{aposta.id} cancelada por usuário {usuario_logado.id} "
+        f"(estorno de R${aposta.valor_apostado})"
+    )
+    return ApostaComSaldoResponse.de_aposta_com_saldo(aposta, saldo_apos)
 
 # =============================================================================
 # Apostador: minhas apostas

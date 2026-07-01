@@ -124,6 +124,12 @@ UPDATE aposta
 SET status = ?, resultado = ?, liquidada_em = ?
 WHERE id = ?
 """
+# Atualiza apenas o status de uma aposta (ex.: cancelamento -> 'Cancelada')
+ATUALIZAR_STATUS = """
+UPDATE aposta
+SET status = ?
+WHERE id = ?
+"""
 
 # --- Agregados (admin dashboard) ---
 

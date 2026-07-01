@@ -33,6 +33,7 @@ from sql.carteira_sql import (
     INSERIR_MOVIMENTACAO,
     CONTAR_MOVIMENTACOES_POR_CARTEIRA,
     OBTER_MOVIMENTACOES_POR_CARTEIRA,
+    RANKING,
 )
 from util.db_util import obter_conexao
 from util.datetime_util import agora
@@ -40,6 +41,39 @@ from util.logger_config import logger
 from util.paginacao_util import Paginacao, ITENS_POR_PAGINA_PADRAO
 
 T = TypeVar("T", bound=Enum)
+
+
+# =============================================================================
+# Ranking
+# =============================================================================
+
+def ranking(limite: int = 50) -> list[dict]:
+    """Retorna o ranking de apostadores ordenado por total ganho (desc).
+
+    Cada item é um dict com: usuario_id, nome_usuario, total_apostado,
+    total_ganho e lucro (total_ganho - total_apostado). A posição (1, 2, 3...)
+    é atribuída aqui, pois a ordem já vem definida pelo ORDER BY do SQL.
+    """
+    with obter_conexao() as conn:
+        cursor = conn.cursor()
+        cursor.execute(RANKING, (limite,))
+        rows = cursor.fetchall()
+
+    itens: list[dict] = []
+    for posicao, row in enumerate(rows, start=1):
+        total_apostado = round(row["total_apostado"] or 0.0, 2)
+        total_ganho = round(row["total_ganho"] or 0.0, 2)
+        itens.append(
+            {
+                "posicao": posicao,
+                "usuario_id": row["usuario_id"],
+                "nome_usuario": row["nome_usuario"],
+                "total_apostado": total_apostado,
+                "total_ganho": total_ganho,
+                "lucro": round(total_ganho - total_apostado, 2),
+            }
+        )
+    return itens
 
 
 # =============================================================================
