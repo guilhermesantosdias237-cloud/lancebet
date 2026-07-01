@@ -5,16 +5,18 @@
 import { useCallback, useState } from 'react'
 import type { CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { adminApi, ApiError } from '../../lib/api'
+import { adminApi, participantesApi, ApiError } from '../../lib/api'
 import { criarEventoSchema } from '../../lib/schemas'
 import type { CriarEventoForm } from '../../lib/schemas'
-import type { EventoAdmin, PaginaResponse } from '../../lib/types'
+import type { EventoAdmin, PaginaResponse, Participante } from '../../lib/types'
+import { escudoDeTime } from '../../lib/imagens'
 import { StatusEvento } from '../../lib/types'
 import { useFetch } from '../../hooks/useFetch'
 import { Badge, Button, statusEventoStyle } from '../../components/lancebet/ui'
 import { toast } from '../../store/uiStore'
 import { fmt } from '../../lib/format'
 import Icon from '../../components/ui/Icon'
+
 
 const labelStyle: CSSProperties = { display: 'block', fontSize: 10.5, fontWeight: 700, letterSpacing: '.07em', textTransform: 'uppercase', color: '#555', marginBottom: 6 }
 const inputStyle: CSSProperties = { width: '100%', padding: '11px 13px', border: '1.5px solid #DCDCDC', fontSize: 14, marginBottom: 13 }
@@ -50,6 +52,9 @@ export default function AdminEventosPage() {
   const navigate = useNavigate()
   const carregar = useCallback(() => adminApi.listarEventos({ por_pagina: 100 }), [])
   const { data, carregando, erro, recarregar } = useFetch<PaginaResponse<EventoAdmin>>(carregar, [])
+  const carregarTimes = useCallback(() => participantesApi.listar(), [])
+  const { data: times } = useFetch<Participante[]>(carregarTimes, [])
+  const listaTimes = times ?? []
   const [form, setForm] = useState<FormState>(emptyForm)
   const [enviando, setEnviando] = useState(false)
 
@@ -133,9 +138,32 @@ export default function AdminEventosPage() {
           <div style={{ background: '#000', color: '#fff', padding: '14px 20px', fontWeight: 800, fontSize: 13, letterSpacing: '.07em', textTransform: 'uppercase' }}>Cadastrar evento</div>
           <div style={{ padding: '22px 20px' }}>
             <label style={labelStyle}>Mandante</label>
-            <input value={form.mandante} onChange={(e) => setForm({ ...form, mandante: e.target.value })} placeholder="Ex.: Santos" style={inputStyle} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
+              {(() => {
+                const escudo = escudoDeTime(form.mandante)
+                return escudo ? <img src={escudo} alt="" style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }} /> : null
+              })()}
+              <select value={form.mandante} onChange={(e) => setForm({ ...form, mandante: e.target.value })} style={{ ...inputStyle, marginBottom: 0 }}>
+                <option value="">Selecione o mandante…</option>
+                {listaTimes.map((t) => (
+                  <option key={t.id} value={t.nome}>{t.nome}</option>
+                ))}
+              </select>
+            </div>
+
             <label style={labelStyle}>Visitante</label>
-            <input value={form.visitante} onChange={(e) => setForm({ ...form, visitante: e.target.value })} placeholder="Ex.: Vasco" style={inputStyle} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 13 }}>
+              {(() => {
+                const escudo = escudoDeTime(form.visitante)
+                return escudo ? <img src={escudo} alt="" style={{ width: 28, height: 28, objectFit: 'contain', flexShrink: 0 }} /> : null
+              })()}
+              <select value={form.visitante} onChange={(e) => setForm({ ...form, visitante: e.target.value })} style={{ ...inputStyle, marginBottom: 0 }}>
+                <option value="">Selecione o visitante…</option>
+                {listaTimes.map((t) => (
+                  <option key={t.id} value={t.nome}>{t.nome}</option>
+                ))}
+              </select>
+            </div>
             <label style={labelStyle}>Competição</label>
             <input value={form.competicao} onChange={(e) => setForm({ ...form, competicao: e.target.value })} placeholder="Brasileirão Série A" style={inputStyle} />
             <label style={labelStyle}>Data / hora</label>

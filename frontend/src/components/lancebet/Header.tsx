@@ -104,6 +104,7 @@ export default function Header() {
             <nav style={{ display: 'flex', gap: 2, marginLeft: 8 }}>
               <NavLink to="/admin">Painel</NavLink>
               <NavLink to="/admin/eventos">Eventos</NavLink>
+              <NavLink to="/admin/times">Times</NavLink>
               <NavLink to="/admin/odds">Odds</NavLink>
               <NavLink to="/admin/resultados">Resultados</NavLink>
               <NavLink to="/admin/usuarios">Usuários</NavLink>

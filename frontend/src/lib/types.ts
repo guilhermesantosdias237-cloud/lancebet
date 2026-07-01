@@ -165,3 +165,11 @@ export interface UsuarioAdmin {
   total_apostas: number
   data_cadastro?: string | null
 }
+// ===== Times / Participantes =====
+export interface Participante {
+  id: number
+  nome: string
+  escudo_url: string | null
+  esporte: string
+  ativo: boolean
+}

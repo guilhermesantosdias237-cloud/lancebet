@@ -177,6 +177,7 @@ import type {
   AdminDashboard,
   LiquidacaoResultado,
   UsuarioAdmin,
+  Participante,
   PaginaResponse,
   MensagemResponse,
 } from './types'
@@ -186,6 +187,7 @@ import type {
   CriarEventoForm,
   AdicionarOpcaoForm,
   LiquidarEventoForm,
+  ParticipanteForm,
 } from './schemas'
 
 interface ListaParams {
@@ -262,4 +264,16 @@ export const adminApi = {
       por_pagina?: number
     } = {},
   ) => api.get<PaginaResponse<Aposta>>('/admin/apostas', { params }),
+}
+/** Times/participantes (cadastro admin + listagem pública para selects). */
+export const participantesApi = {
+  // Listagem pública (apenas ativos) — usada nos selects do formulário de evento.
+  listar: () => api.get<Participante[]>('/times'),
+
+  // CRUD admin.
+  listarAdmin: () => api.get<Participante[]>('/admin/times'),
+  criar: (dados: ParticipanteForm) => api.post<Participante>('/admin/times', dados),
+  alterar: (id: number, dados: ParticipanteForm) =>
+    api.put<Participante>(`/admin/times/${id}`, dados),
+  excluir: (id: number) => api.delete<void>(`/admin/times/${id}`),
 }

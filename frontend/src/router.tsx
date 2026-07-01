@@ -26,6 +26,7 @@ import CarteiraPage from './pages/apostador/CarteiraPage'
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminEventosPage from './pages/admin/AdminEventosPage'
 import AdminOddsPage from './pages/admin/AdminOddsPage'
+import AdminTimesPage from './pages/admin/AdminTimesPage'
 import AdminResultadoPage from './pages/admin/AdminResultadoPage'
 import AdminUsuariosPage from './pages/admin/AdminUsuariosPage'
 
@@ -80,6 +81,7 @@ export const router = createBrowserRouter([
             children: [
               { path: '/admin', element: <AdminDashboardPage /> },
               { path: '/admin/eventos', element: <AdminEventosPage /> },
+              { path: '/admin/times', element: <AdminTimesPage /> },
               { path: '/admin/odds', element: <AdminOddsPage /> },
               { path: '/admin/odds/:id', element: <AdminOddsPage /> },
               { path: '/admin/resultados', element: <AdminResultadoPage /> },

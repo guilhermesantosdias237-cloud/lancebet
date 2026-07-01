@@ -30,7 +30,7 @@ from repo import (
 )
 
 # Repositórios do LanceBet (carteira, eventos, apostas)
-from repo import carteira_repo, evento_repo, aposta_repo
+from repo import carteira_repo, evento_repo, aposta_repo, participante_repo
 
 # Rotas (API JSON)
 from routes.auth_routes import router as auth_router
@@ -50,6 +50,11 @@ from routes.aposta_routes import (
     admin_dashboard_router as admin_dashboard_router,
 )
 from routes.carteira_routes import router as carteira_router
+
+from routes.admin_times_routes import (
+    router as times_router,
+    admin_router as admin_times_router,
+)
 
 # Seeds
 from util.seed_data import inicializar_dados
@@ -104,6 +109,8 @@ TABELAS = [
     (evento_repo, "evento_esportivo + opcao_aposta"),
     (aposta_repo, "aposta"),
     (carteira_repo, "carteira + movimentacao_financeira"),
+    # Cadastro de times/participantes (independente, sem FK).
+    (participante_repo, "participante"),
     # Infra de configuração (settings em runtime, lida por util/config.py).
     (configuracao_repo, "configuracao"),
 ]
@@ -147,6 +154,9 @@ ROUTERS = [
     (admin_apostas_router, ["Admin - Apostas"], "admin de apostas"),
     (admin_liquidacao_router, ["Admin - Eventos"], "admin de liquidação"),
     (admin_dashboard_router, ["Admin - Dashboard"], "admin dashboard"),
+    # Times/participantes
+    (times_router, ["Times"], "times (público)"),
+    (admin_times_router, ["Admin - Times"], "admin de times"),
 ]
 
 for router, tags, nome in ROUTERS:

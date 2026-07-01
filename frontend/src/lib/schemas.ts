@@ -111,3 +111,16 @@ export const liquidarEventoSchema = z.object({
   resultado_descricao: z.string().optional().default(''),
 })
 export type LiquidarEventoForm = z.infer<typeof liquidarEventoSchema>
+
+// ===== Admin: times / participantes =====
+
+export const participanteSchema = z.object({
+  nome: z
+    .string()
+    .min(2, 'O nome deve ter no mínimo 2 caracteres')
+    .max(80, 'O nome deve ter no máximo 80 caracteres'),
+  escudo_url: z.string().optional().default(''),
+  esporte: z.string().min(1, 'Informe o esporte').default('Futebol'),
+  ativo: z.boolean().default(true),
+})
+export type ParticipanteForm = z.infer<typeof participanteSchema>
